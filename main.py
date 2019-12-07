@@ -47,14 +47,16 @@ def fill_final_results():
     # Load the final score workbook
     final_workbook = load_workbook(filename="Syratomten Total Poängställning.xlsx")
 
-    final_final_result_list = []
-    final_result_dict = {
+    #final_final_result_list = []
+    """final_result_dict = {
         "Herr" : {},
         "Dam" : {},
         "Herr U23" : {},
         "Dam U23" : {}
 
-    }
+    }"""
+
+    final_result_dict = {}
 
     print(final_result_dict)
 
@@ -111,9 +113,15 @@ def fill_final_results():
                 }
                 """
 
-                final_result_dict[race_class][values[1]] = {
-                    races : values[5]
-                }
+                if race_class not in final_result_dict:
+                    final_result_dict[race_class] = {}
+                #final_result_dict[race_class][values[1]] = {}
+
+                if values[1] not in final_result_dict[race_class]:
+                    final_result_dict[race_class][values[1]] = {races: values[5]}
+                else:
+                    final_result_dict[race_class][values[1]][races] = values[5]
+                #final_result_dict[race_class][values[1]][races] = values[5]
 
                 #final_result_dict[race_class][values[1]]["dt1"] = values[5]
 
