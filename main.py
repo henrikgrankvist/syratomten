@@ -14,6 +14,7 @@ KLUBB = 2
 dt = 3
 workbook_sheets = ["Herr", "Dam", "Herr U23", "Dam U23"]
 workbooks_created = []
+final_results_workbook_name = "Syratomten Total Poängställning.xlsx"
 
 
 """
@@ -36,7 +37,7 @@ def scoreboard(namn, klass, klubb, tid, number_of_participants, position):
 
 
         score_workbook[klass]["D" + str(position+2)] = tid  # Tid
-        score_workbook[klass]["E" + str(position+2)] = "{:.1f}".format(19.5/(int(datetime.datetime.strptime(tid, "%M:%S").strftime("%M"))/60 + int(datetime.datetime.strptime(tid, "%M:%S").strftime("%M"))/3600))
+        score_workbook[klass]["E" + str(position+2)] = "{:.1f}".format(19.5/(int(datetime.datetime.strptime(tid, "%M:%S").strftime("%M"))/60 + int(datetime.datetime.strptime(tid, "%M:%S").strftime("%S"))/3600)) # speed
 
 
         if klubb == "Väsby SS Triathlon": # Only Väsby Triathlon members gets a score
@@ -88,23 +89,6 @@ def fill_final_results():
         "Syratomten Deltävling 9.xlsx" : "K",
         "Syratomten Deltävling Final.xlsx" : "L"
     }
-
-
-    """for klass, resultat in final_result_dict.items():
-        final_position = 2
-        for namn,resultat2 in resultat.items():
-
-            total_points = 0
-            for race, point in resultat2.items():
-
-                column = column_dict[race]
-                final_workbook[klass]["A" + str(final_position)] = final_position-1
-                final_workbook[klass]["B" + str(final_position)] = namn
-                final_workbook[klass][column + str(final_position)] = point
-                total_points += point
-
-            final_workbook[klass]["M" + str(final_position)] = total_points
-            final_position += 1"""
 
     for klass in final_result_dict:
         final_position = 2
@@ -191,7 +175,7 @@ def create_final_results_workbook():
 
     # Create the workbook
     workbook = Workbook()
-    final_results_workbook_name = "Syratomten Total Poängställning.xlsx"
+
     workbook.save(filename=final_results_workbook_name)
     print("INFO: Workbook " + final_results_workbook_name + " was created.")
 
@@ -297,6 +281,7 @@ if __name__ == "__main__":
 
             # Only continue if there are any participants in the race
             if number_of_participants_herr != 0 or number_of_participants_dam != 0 or number_of_participants_herru23 != 0 or number_of_participants_damu23 != 0:
+            #if any(number_of_participants_herr, number_of_participants_dam, number_of_participants_herru23, number_of_participants_damu23) != 0:
 
                 # Create a new workbook for this race
                 score_workbook = create_race_workbook(workbooks)
@@ -318,7 +303,7 @@ if __name__ == "__main__":
                         position_damu23 = scoreboard(stuff[NAME], stuff[KLASS], stuff[KLUBB], stuff[dt], number_of_participants_damu23, position_damu23)
 
                 # Increase the deltävling by one each loop
-                dt = dt + 1
+                dt += 1
 
                 # Save the content in the score workbook
                 score_workbook.save(filename="Syratomten " + workbooks + ".xlsx")
@@ -335,52 +320,58 @@ if __name__ == "__main__":
     """
 
     # Load the workbook that includes all the race results
-    real_final_workbook = load_workbook(filename="Syratomten Total Poängställning.xlsx")
-
-    # Append all the values in the initial workbook to a list. It is easyier to work with
-    real_result_list = []
-
-    for values in real_final_workbook["Herr"].iter_rows(min_row=2, values_only=True):
-        real_result_list.append(values)
-
-    # For each race in the workbook
-    for race in real_final_workbook["Herr"].iter_rows(min_row=1, max_row=1, min_col=4, values_only=True):
-
-        for workbooks in race:
-
-            # Sort the result_list based on the times
-            try:
-                real_result_list.sort(key=sort_final_score, reverse = True)
-
-            except TypeError:
-                print("WARNING: DID NOT SORT " + str(workbooks))
-
-    # Sorted list
-    print(real_result_list)
+    real_final_workbook = load_workbook(filename=final_results_workbook_name)
+    print("INFO: Opened " + final_results_workbook_name + " to sort it.")
 
 
-    column_dict1 = {
-        0 : "A",
-        1 : "B",
-        2 : "C",
-        3 : "D",
-        4 : "E",
-        5 : "F",
-        6 : "G",
-        7 : "H",
-        8 : "I",
-        9 : "J",
-        10 : "K",
-        11 : "L",
-        12 : "M"
-    }
+
+    for sheet in workbook_sheets:
+        #print(real_final_workbook[race_class])
+
+        # Append all the values in the initial workbook to a list. It is easyier to work with
+        real_result_list = []
+
+        for values in real_final_workbook[sheet].iter_rows(min_row=2, values_only=True):
+            real_result_list.append(values)
+
+        # For each race in the workbook
+        for race in real_final_workbook[sheet].iter_rows(min_row=1, max_row=1, min_col=4, values_only=True):
+
+            for workbooks in race:
+
+                # Sort the result_list based on the times
+                try:
+                    real_result_list.sort(key=sort_final_score, reverse = True)
+
+                except TypeError:
+                    print("WARNING: DID NOT SORT " + str(workbooks))
+
+        # Sorted list
+        #print(real_result_list)
 
 
-    for position,stuff in enumerate(real_result_list,1): #enumerate starts at 1
-        for idx, items in enumerate(stuff):
-            column = column_dict1[idx]
-            real_final_workbook["Herr"][str(column) + str(position+1)] = items
-            real_final_workbook["Herr"]["A" + str(position+1)] = position
+        column_dict1 = {
+            0 : "A",
+            1 : "B",
+            2 : "C",
+            3 : "D",
+            4 : "E",
+            5 : "F",
+            6 : "G",
+            7 : "H",
+            8 : "I",
+            9 : "J",
+            10 : "K",
+            11 : "L",
+            12 : "M"
+        }
 
-    real_final_workbook.save(filename="Syratomten Total Poängställning.xlsx")
+
+        for position,stuff in enumerate(real_result_list,1): #enumerate starts at 1
+            for idx, items in enumerate(stuff):
+                column = column_dict1[idx]
+                real_final_workbook[sheet][str(column) + str(position+1)] = items
+                real_final_workbook[sheet]["A" + str(position+1)] = position
+
+    real_final_workbook.save(filename=final_results_workbook_name)
     print("INFO: The workbook Syratomten Total Poängställning.xlsx was saved.")
