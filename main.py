@@ -376,21 +376,12 @@ if __name__ == "__main__":
     }
 
 
-    for position,stuff in enumerate(real_result_list):
+    for position,stuff in enumerate(real_result_list,1): #enumerate starts at 1
         for idx, items in enumerate(stuff):
             column = column_dict1[idx]
-            real_final_workbook["Herr"][str(column) + str(position+2)] = items
-            real_final_workbook["Herr"]["A" + str(position+2)] = position+1
+            real_final_workbook["Herr"][str(column) + str(position+1)] = items
+            real_final_workbook["Herr"]["A" + str(position+1)] = position
         position += 1
-
-
-    """position = 0
-    for stuff in real_result_list:
-        for idx, items in enumerate(stuff):
-            column = column_dict1[idx]
-            real_final_workbook["Herr"][str(column) + str(position+2)] = items
-            real_final_workbook["Herr"]["A" + str(position+2)] = position+1
-        position += 1"""
 
     real_final_workbook.save(filename="Syratomten Total Poängställning.xlsx")
     print("INFO: The workbook Syratomten Total Poängställning.xlsx was saved.")
