@@ -2,9 +2,10 @@ from openpyxl import load_workbook
 from openpyxl import Workbook
 from openpyxl.styles import Alignment
 import datetime
-import json
+#import json
+#from pprint import pprint
 
-init_workbook = load_workbook(filename="st-test2.xlsx")
+
 
 NAME = 0
 KLASS = 1
@@ -12,6 +13,7 @@ KLUBB = 2
 
 dt = 3
 workbook_sheets = ["Herr", "Dam", "Herr U23", "Dam U23"]
+workbooks_created = []
 
 
 """
@@ -25,6 +27,8 @@ def scoreboard(namn, klass, klubb, tid, number_of_participants, position):
     if tid != None: # If the tid is None, they have not raced
 
         score_workbook[klass]["A" + str(position+2)] = position + 1
+        score_workbook[klass]["A" + str(position+2)].alignment = Alignment(horizontal='left')
+
         score_workbook[klass]["B" + str(position+2)] = namn # Name
 
         if klubb != None: # Dont write "None" as the club
@@ -37,6 +41,7 @@ def scoreboard(namn, klass, klubb, tid, number_of_participants, position):
 
         if klubb == "Väsby SS Triathlon": # Only Väsby Triathlon members gets a score
             score_workbook[klass]["F" + str(position+2)] = points      # points
+            score_workbook[klass]["F" + str(position+2)].alignment = Alignment(horizontal='left')
 
         return position + 1
     else: # If tid was none, dont increase the position
@@ -47,18 +52,7 @@ def fill_final_results():
     # Load the final score workbook
     final_workbook = load_workbook(filename="Syratomten Total Poängställning.xlsx")
 
-    #final_final_result_list = []
-    """final_result_dict = {
-        "Herr" : {},
-        "Dam" : {},
-        "Herr U23" : {},
-        "Dam U23" : {}
-
-    }"""
-
     final_result_dict = {}
-
-    print(final_result_dict)
 
     for races in workbooks_created:
 
@@ -66,108 +60,73 @@ def fill_final_results():
         race_workbook = load_workbook(filename=races)
         print("INFO: Opened workbook " + races)
 
-        """
-        if races == "Syratomten Deltävling 1.xlsx":
-            race_column = "C"
-        elif races == "Syratomten Deltävling 2.xlsx":
-            race_column = "D"
-        elif races == "Syratomten Deltävling 3.xlsx":
-            race_column = "E"
-        elif races == "Syratomten Deltävling 4.xlsx":
-            race_column = "F"
-        elif races == "Syratomten Deltävling 5.xlsx":
-            race_column = "G"
-        elif races == "Syratomten Deltävling 6.xlsx":
-            race_column = "H"
-        elif races == "Syratomten Deltävling 7.xlsx":
-            race_column = "I"
-        elif races == "Syratomten Deltävling 8.xlsx":
-            race_column = "J"
-        elif races == "Syratomten Deltävling 9.xlsx":
-            race_column = "K"
-        elif races == "Syratomten Final.xlsx":
-            race_column = "M"
-        """
-
-
-
         # For each class in the race
         for race_class in workbook_sheets:
-            #print("RACE_CLASS: " + race_class)
-
-            # Reset the final_result_list befor each loop
-            #final_result_list = []
 
             # Append the workbook sheet values to a list because it is easier to work with
             for values in race_workbook[race_class].iter_rows(min_row=2, values_only=True):
-                #final_result_list.append(values)
 
-                #print(values)
-                #print(races)
-                print(values[1], values[5])
-                """
-                final_result_dict[race_class] = {
-                    values[1] : {
-                        "dt1" : values[5]
-                    }
-                }
-                """
-
-                if race_class not in final_result_dict:
+                if race_class not in final_result_dict: # If the class doesn't exist in the dictionary, create the class
                     final_result_dict[race_class] = {}
-                #final_result_dict[race_class][values[1]] = {}
 
-                if values[1] not in final_result_dict[race_class]:
-                    final_result_dict[race_class][values[1]] = {races: values[5]}
-                else:
-                    final_result_dict[race_class][values[1]][races] = values[5]
-                #final_result_dict[race_class][values[1]][races] = values[5]
+                if values[5] != None: # Dont save the result if they dont have a score
+                    if values[1] not in final_result_dict[race_class]: # if the participant doesn't exists
+                        final_result_dict[race_class][values[1]] = {races: values[5]}
+                    else:
+                        final_result_dict[race_class][values[1]][races] = values[5]
 
-                #final_result_dict[race_class][values[1]]["dt1"] = values[5]
-
-
-                #print(final_result_dict)
-                #final_result_dict["Herr"]["Henrik"]["dt1"] = values[5]
-
-
-        #print(final_result_dict)
-
-        print(json.dumps(final_result_dict, indent=4, sort_keys=True))
-
-            #print(final_result_list)
-            #final_position = 2 # Start at row 2
-
-            # for each participant in the class
-        """
-            for participant in final_result_list:
-
-                # Only add a new name if it doesn't exists in the resulsts lists already
-                if participant[5] != None: # If the score is not None
-                    #print(participant[0], participant[5])
-                    temp_final_final_result_list = []
-                    temp_final_final_result_list.append(participant[1])
-                    temp_final_final_result_list.append(participant[5])
-                    final_final_result_list.append(temp_final_final_result_list)
-                    """
-        #print (final_final_result_list[0][0])
-        #for stuff in final_final_result_list:
-        #    print(stuff)
-
-        #print(final_final_result_list)
-
-        #for
+    # This dictionary is translating the names of the races to a specific column in the final wourkbook.
+    column_dict = {
+        "Syratomten Deltävling 1.xlsx" : "C",
+        "Syratomten Deltävling 2.xlsx" : "D",
+        "Syratomten Deltävling 3.xlsx" : "E",
+        "Syratomten Deltävling 4.xlsx" : "F",
+        "Syratomten Deltävling 5.xlsx" : "G",
+        "Syratomten Deltävling 6.xlsx" : "H",
+        "Syratomten Deltävling 7.xlsx" : "I",
+        "Syratomten Deltävling 8.xlsx" : "J",
+        "Syratomten Deltävling 9.xlsx" : "K",
+        "Syratomten Deltävling Final.xlsx" : "L"
+    }
 
 
-        """if race_workbook[race_class]["F" + str(final_position)].value != None: # Don't include participant that dont have a score (not Väsby SS Triathlon members)
+    """for klass, resultat in final_result_dict.items():
+        final_position = 2
+        for namn,resultat2 in resultat.items():
 
-                    print(final_position-1, race_class, race_workbook[race_class]["B" + str(final_position)].value, race_workbook[race_class]["F" + str(final_position)].value)
+            total_points = 0
+            for race, point in resultat2.items():
 
-                    final_workbook[race_class]["B" + str(final_position)] = race_workbook[race_class]["B" + str(final_position)].value # Name
-                    final_workbook[race_class][race_column + str(final_position)] = race_workbook[race_class]["F" + str(final_position)].value # Score
+                column = column_dict[race]
+                final_workbook[klass]["A" + str(final_position)] = final_position-1
+                final_workbook[klass]["B" + str(final_position)] = namn
+                final_workbook[klass][column + str(final_position)] = point
+                total_points += point
 
-                    final_position = final_position + 1"""
+            final_workbook[klass]["M" + str(final_position)] = total_points
+            final_position += 1"""
 
-    # Save the final_workbook after all the results are transfered
+    for klass in final_result_dict:
+        final_position = 2
+        for namn in final_result_dict[klass]:
+            total_points = 0
+            for race in final_result_dict[klass][namn]:
+                column = column_dict[race]
+                final_workbook[klass]["A" + str(final_position)] = final_position-1
+                final_workbook[klass]["A" + str(final_position)].alignment = Alignment(horizontal='left')
+
+                final_workbook[klass]["B" + str(final_position)] = namn
+
+                final_workbook[klass][column + str(final_position)] = final_result_dict[klass][namn][race]
+                total_points += final_result_dict[klass][namn][race]
+
+                final_workbook[klass][column + str(final_position)].alignment = Alignment(horizontal='center')
+
+            final_workbook[klass]["M" + str(final_position)] = total_points
+            final_workbook[klass]["M" + str(final_position)].alignment = Alignment(horizontal='left')
+            final_position += 1
+
+    # Save the final_workbook after all the results are saved
     final_workbook.save(filename="Syratomten Total Poängställning.xlsx")
     print("INFO: The workbook Syratomten Total Poängställning.xlsx was saved.")
 
@@ -181,7 +140,12 @@ def sort_fuction(elem):
     else: # If the value is None return "00:00" instead. Otherwise the sort() function will try to sort None, which doesn't work
         return "00:00"
 
-workbooks_created = []
+def sort_final_score(elem):
+    """if elem[12]: # If the values is not None, return that value
+        return elem[12]
+    else: # If the value is None return "00:00" instead. Otherwise the sort() function will try to sort None, which doesn't work
+        return "00:00"""
+    return elem[12]
 
 def create_race_workbook(workbook_name):
 
@@ -255,7 +219,21 @@ def create_final_results_workbook():
             workbook[sheet]["L1"] = "F"
             workbook[sheet]["M1"] = "Totalt"
 
-            print("Sheet " + sheet + " created.")
+            workbook[sheet].column_dimensions["A"].width = 9
+            workbook[sheet].column_dimensions["B"].width = 20
+            workbook[sheet].column_dimensions["C"].width = 4
+            workbook[sheet].column_dimensions["D"].width = 4
+            workbook[sheet].column_dimensions["E"].width = 4
+            workbook[sheet].column_dimensions["F"].width = 4
+            workbook[sheet].column_dimensions["G"].width = 4
+            workbook[sheet].column_dimensions["H"].width = 4
+            workbook[sheet].column_dimensions["I"].width = 4
+            workbook[sheet].column_dimensions["J"].width = 4
+            workbook[sheet].column_dimensions["K"].width = 4
+            workbook[sheet].column_dimensions["L"].width = 4
+            workbook[sheet].column_dimensions["M"].width = 6
+
+            print("INFO: Sheet " + sheet + " created in " + final_results_workbook_name)
 
     # Remove the sheet named "Sheet", which is created by default.
     if "Sheet" in score_workbook.sheetnames:
@@ -266,6 +244,9 @@ def create_final_results_workbook():
 
 
 if __name__ == "__main__":
+
+    # Load the workbook that includes all the race results
+    init_workbook = load_workbook(filename="st-test2.xlsx")
 
     # Append all the values in the initial workbook to a list. It is easyier to work with
     result_list = []
@@ -323,24 +304,19 @@ if __name__ == "__main__":
                 # Create a new workbook for this race
                 score_workbook = create_race_workbook(workbooks)
 
-
                 for stuff in result_list:
 
-                    #if stuff[KLASS] == "Herr" and number_of_participants_herr != None:
                     # Herr U23 is also counted in the Herr class
                     if stuff[KLASS] == "Herr" or stuff[KLASS] == "Herr U23":
                         position_herr = scoreboard(stuff[NAME], "Herr", stuff[KLUBB], stuff[dt], number_of_participants_herr, position_herr)
 
-                    #elif stuff[KLASS] == "Dam" and number_of_participants_dam != None:
                     # Dam U23 is also counted in the Dam class
                     elif stuff[KLASS] == "Dam" or stuff[KLASS] == "Dam U23":
                         position_dam = scoreboard(stuff[NAME], "Dam", stuff[KLUBB], stuff[dt], number_of_participants_dam, position_dam)
 
-                    #elif stuff[KLASS] == "Herr U23"and number_of_participants_herru23 != None:
                     if stuff[KLASS] == "Herr U23":
                         position_herru23 = scoreboard(stuff[NAME], stuff[KLASS], stuff[KLUBB], stuff[dt], number_of_participants_herru23, position_herru23)
 
-                    #elif stuff[KLASS] == "Dam U23" and number_of_participants_damu23 != None:
                     elif stuff[KLASS] == "Dam U23":
                         position_damu23 = scoreboard(stuff[NAME], stuff[KLASS], stuff[KLUBB], stuff[dt], number_of_participants_damu23, position_damu23)
 
@@ -354,13 +330,34 @@ if __name__ == "__main__":
     # Create the final results workbook
     create_final_results_workbook()
 
-
-    """
-    Save the results in the final result workbook as well
-    The result is only saved if it is a member of Väsby SS Triathlon
-    """
-    #temp_final_positition = fill_final_results(temp_final_positition, namn, klass, points)
+    # Fill the final resulults workbook
     fill_final_results()
 
-    #final_workbook.save(filename="Syratomten Total Poängställning.xlsx")
-    #print("The workbook Syratomten Total Poängställning.xlsx was saved.")
+    """
+    Testing some stuff
+    """
+
+    # Load the workbook that includes all the race results
+    real_final_workbook = load_workbook(filename="Syratomten Total Poängställning.xlsx")
+
+    # Append all the values in the initial workbook to a list. It is easyier to work with
+    real_result_list = []
+
+    for values in real_final_workbook["Herr"].iter_rows(min_row=2, values_only=True):
+        real_result_list.append(values)
+
+    # For each race in the workbook
+    for race in real_final_workbook["Herr"].iter_rows(min_row=1, max_row=1, min_col=4, values_only=True):
+
+        for workbooks in race:
+
+            # Sort the result_list based on the times
+            try:
+                real_result_list.sort(key=sort_final_score, reverse = True)
+
+            except TypeError:
+                print("WARNING: DID NOT SORT " + str(workbooks))
+
+    #print(real_result_list)
+    for stuff in real_result_list:
+        print(stuff)
