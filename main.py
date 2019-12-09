@@ -179,9 +179,6 @@ def create_race_workbook(workbook_name):
             workbook[sheet].column_dimensions["E"].width = 16
             workbook[sheet].column_dimensions["F"].width = 9
 
-            #You can't allign the whole column, only cell by cell
-            #workbook[sheet]["A2"].alignment = Alignment(horizontal='left')
-
             print("INFO: Sheet " + sheet + " created in workbook " + str(workbook_name))
 
     # Remove the sheet named "Sheet", which is created by default.
