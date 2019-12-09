@@ -355,6 +355,33 @@ if __name__ == "__main__":
             except TypeError:
                 print("WARNING: DID NOT SORT " + str(workbooks))
 
-    #print(real_result_list)
+    # Sorted list
+    print(real_result_list)
+
+
+    column_dict1 = {
+        0 : "A",
+        1 : "B",
+        2 : "C",
+        3 : "D",
+        4 : "E",
+        5 : "F",
+        6 : "G",
+        7 : "H",
+        8 : "I",
+        9 : "J",
+        10 : "K",
+        11 : "L",
+        12 : "M"
+    }
+
+    position = 0
     for stuff in real_result_list:
-        print(stuff)
+        for idx, items in enumerate(stuff):
+            column = column_dict1[idx]
+            real_final_workbook["Herr"][str(column) + str(position+2)] = items
+            real_final_workbook["Herr"]["A" + str(position+2)] = position+1
+        position += 1
+
+    real_final_workbook.save(filename="Syratomten Total Poängställning.xlsx")
+    print("INFO: The workbook Syratomten Total Poängställning.xlsx was saved.")
