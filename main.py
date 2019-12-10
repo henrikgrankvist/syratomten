@@ -16,6 +16,36 @@ workbook_sheets = ["Herr", "Dam", "Herr U23", "Dam U23"]
 workbooks_created = []
 final_results_workbook_name = "Syratomten Total Poängställning.xlsx"
 
+column_dict1 = {
+    0 : "A",
+    1 : "B",
+    2 : "C",
+    3 : "D",
+    4 : "E",
+    5 : "F",
+    6 : "G",
+    7 : "H",
+    8 : "I",
+    9 : "J",
+    10 : "K",
+    11 : "L",
+    12 : "M"
+}
+
+# This dictionary is translating the names of the races to a specific column in the final wourkbook.
+column_dict = {
+    "Syratomten Deltävling 1.xlsx" : "C",
+    "Syratomten Deltävling 2.xlsx" : "D",
+    "Syratomten Deltävling 3.xlsx" : "E",
+    "Syratomten Deltävling 4.xlsx" : "F",
+    "Syratomten Deltävling 5.xlsx" : "G",
+    "Syratomten Deltävling 6.xlsx" : "H",
+    "Syratomten Deltävling 7.xlsx" : "I",
+    "Syratomten Deltävling 8.xlsx" : "J",
+    "Syratomten Deltävling 9.xlsx" : "K",
+    "Syratomten Deltävling Final.xlsx" : "L"
+}
+
 
 """
 Functions
@@ -76,39 +106,34 @@ def fill_final_results():
                     else:
                         final_result_dict[race_class][values[1]][races] = values[5]
 
-    # This dictionary is translating the names of the races to a specific column in the final wourkbook.
-    column_dict = {
-        "Syratomten Deltävling 1.xlsx" : "C",
-        "Syratomten Deltävling 2.xlsx" : "D",
-        "Syratomten Deltävling 3.xlsx" : "E",
-        "Syratomten Deltävling 4.xlsx" : "F",
-        "Syratomten Deltävling 5.xlsx" : "G",
-        "Syratomten Deltävling 6.xlsx" : "H",
-        "Syratomten Deltävling 7.xlsx" : "I",
-        "Syratomten Deltävling 8.xlsx" : "J",
-        "Syratomten Deltävling 9.xlsx" : "K",
-        "Syratomten Deltävling Final.xlsx" : "L"
-    }
 
+
+    """
+    This loop print the results saved in the dictionary to the final excel workbook.
+    """
     for klass in final_result_dict:
-        final_position = 2
-        for namn in final_result_dict[klass]:
+        for position, namn in enumerate(final_result_dict[klass], 2):
             total_points = 0
             for race in final_result_dict[klass][namn]:
+
                 column = column_dict[race]
-                final_workbook[klass]["A" + str(final_position)] = final_position-1
-                final_workbook[klass]["A" + str(final_position)].alignment = Alignment(horizontal='left')
+                #print(race)
 
-                final_workbook[klass]["B" + str(final_position)] = namn
+                #final_workbook[klass]["A" + str(final_position)] = final_position-1
+                final_workbook[klass]["A" + str(position)].alignment = Alignment(horizontal='left')
 
-                final_workbook[klass][column + str(final_position)] = final_result_dict[klass][namn][race]
+                final_workbook[klass]["B" + str(position)] = namn
+
+                final_workbook[klass][column + str(position)] = final_result_dict[klass][namn][race] # The race score for each race
+                final_workbook[klass][column + str(position)].alignment = Alignment(horizontal='left')
+
                 total_points += final_result_dict[klass][namn][race]
 
-                final_workbook[klass][column + str(final_position)].alignment = Alignment(horizontal='center')
+                final_workbook[klass][column + str(position)].alignment = Alignment(horizontal='center')
 
-            final_workbook[klass]["M" + str(final_position)] = total_points
-            final_workbook[klass]["M" + str(final_position)].alignment = Alignment(horizontal='left')
-            final_position += 1
+            final_workbook[klass]["M" + str(position)] = total_points
+            final_workbook[klass]["M" + str(position)].alignment = Alignment(horizontal='left')
+            #final_position += 1
 
     # Save the final_workbook after all the results are saved
     final_workbook.save(filename="Syratomten Total Poängställning.xlsx")
@@ -125,10 +150,6 @@ def sort_fuction(elem):
         return "00:00"
 
 def sort_final_score(elem):
-    """if elem[12]: # If the values is not None, return that value
-        return elem[12]
-    else: # If the value is None return "00:00" instead. Otherwise the sort() function will try to sort None, which doesn't work
-        return "00:00"""
     return elem[12]
 
 def create_race_workbook(workbook_name):
@@ -345,27 +366,6 @@ if __name__ == "__main__":
 
                 except TypeError:
                     print("WARNING: DID NOT SORT " + str(workbooks))
-
-        # Sorted list
-        #print(real_result_list)
-
-
-        column_dict1 = {
-            0 : "A",
-            1 : "B",
-            2 : "C",
-            3 : "D",
-            4 : "E",
-            5 : "F",
-            6 : "G",
-            7 : "H",
-            8 : "I",
-            9 : "J",
-            10 : "K",
-            11 : "L",
-            12 : "M"
-        }
-
 
         for position,stuff in enumerate(real_result_list,1): #enumerate starts at 1
             for idx, items in enumerate(stuff):
