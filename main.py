@@ -1,5 +1,4 @@
 """
-
 Participants needs unique names
 """
 
@@ -150,7 +149,7 @@ def fill_final_results():
 
 
 
-def sort_fuction(elem):
+def sort_individual_race(elem):
     if elem[dt]: # If the values is not None, return that value
         return elem[dt]
     else: # If the value is None return "00:00" instead. Otherwise the sort() function will try to sort None, which doesn't work
@@ -304,7 +303,7 @@ if __name__ == "__main__":
 
             # Sort the result_list based on the times
             try:
-                result_list.sort(key=sort_fuction)
+                result_list.sort(key=sort_individual_race)
                 #print("SORTED " + str(workbooks))
             except TypeError:
                 print("WARNING: DID NOT SORT " + str(workbooks))
