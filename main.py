@@ -99,7 +99,7 @@ def fill_final_results():
         # For each class in the race
         for race_class in workbook_sheets:
 
-            # Append the workbook sheet values to a list because it is easier to work with
+            # Append the workbook values to a dictionary
             for values in race_workbook[race_class].iter_rows(min_row=2, values_only=True):
 
                 if race_class not in final_result_dict: # If the class doesn't exist in the dictionary, create the class
@@ -226,6 +226,7 @@ def create_final_results_workbook():
             workbook[sheet]["L1"] = "F"
             workbook[sheet]["M1"] = "Totalt"
 
+            # Setting the column width
             workbook[sheet].column_dimensions["A"].width = 9
             workbook[sheet].column_dimensions["B"].width = 20
             workbook[sheet].column_dimensions["C"].width = 4
@@ -248,6 +249,39 @@ def create_final_results_workbook():
 
     workbook.save(filename=final_results_workbook_name)
     print ("INFO: Workbook " + final_results_workbook_name + " was saved")
+
+def sort_final_results():
+    # Load the workbook that includes all the race results
+    real_final_workbook = load_workbook(filename=final_results_workbook_name)
+    print("INFO: Opened " + final_results_workbook_name + " to sort it.")
+
+    for sheet in workbook_sheets:
+
+        # Append all the values in the initial workbook to a list. It is easyier to work with
+        final_results_list = []
+        for values in real_final_workbook[sheet].iter_rows(min_row=2, values_only=True):
+            final_results_list.append(values)
+
+        # For each race in the workbook
+        for race in real_final_workbook[sheet].iter_rows(min_row=1, max_row=1, min_col=4, values_only=True):
+
+            for workbooks in race:
+
+                # Sort the result_list based on the times
+                try:
+                    final_results_list.sort(key=sort_final_score, reverse = True)
+
+                except TypeError:
+                    print("WARNING: DID NOT SORT " + str(workbooks))
+
+        for position,stuff in enumerate(final_results_list,1): #enumerate starts at 1
+            for idx, items in enumerate(stuff):
+                column = column_dict1[idx]
+                real_final_workbook[sheet][str(column) + str(position+1)] = items
+                real_final_workbook[sheet]["A" + str(position+1)] = position
+
+    real_final_workbook.save(filename=final_results_workbook_name)
+    print("INFO: The workbook " + final_results_workbook_name + " was saved.")
 
 
 if __name__ == "__main__":
@@ -338,46 +372,8 @@ if __name__ == "__main__":
     # Create the final results workbook
     create_final_results_workbook()
 
-    # Fill the final resulults workbook
+    # Fill the final results workbook
     fill_final_results()
 
-    """
-    Testing some stuff
-    """
-
-    
-    # Load the workbook that includes all the race results
-    real_final_workbook = load_workbook(filename=final_results_workbook_name)
-    print("INFO: Opened " + final_results_workbook_name + " to sort it.")
-
-
-
-    for sheet in workbook_sheets:
-        #print(real_final_workbook[race_class])
-
-        # Append all the values in the initial workbook to a list. It is easyier to work with
-        real_result_list = []
-
-        for values in real_final_workbook[sheet].iter_rows(min_row=2, values_only=True):
-            real_result_list.append(values)
-
-        # For each race in the workbook
-        for race in real_final_workbook[sheet].iter_rows(min_row=1, max_row=1, min_col=4, values_only=True):
-
-            for workbooks in race:
-
-                # Sort the result_list based on the times
-                try:
-                    real_result_list.sort(key=sort_final_score, reverse = True)
-
-                except TypeError:
-                    print("WARNING: DID NOT SORT " + str(workbooks))
-
-        for position,stuff in enumerate(real_result_list,1): #enumerate starts at 1
-            for idx, items in enumerate(stuff):
-                column = column_dict1[idx]
-                real_final_workbook[sheet][str(column) + str(position+1)] = items
-                real_final_workbook[sheet]["A" + str(position+1)] = position
-
-    real_final_workbook.save(filename=final_results_workbook_name)
-    print("INFO: The workbook Syratomten Total Poängställning.xlsx was saved.")
+    # Sort the results in the final results workbook
+    sort_final_results()
