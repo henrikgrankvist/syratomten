@@ -332,7 +332,7 @@ if __name__ == "__main__":
 
 
 
-            # Reset the participans position
+            # Reset the participants position
             position_herr = 0
             position_dam = 0
             position_herru23 = 0
