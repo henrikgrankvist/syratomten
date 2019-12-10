@@ -1,9 +1,14 @@
+"""
+
+Participants needs unique names
+"""
+
+
 from openpyxl import load_workbook
 from openpyxl import Workbook
 from openpyxl.styles import Alignment
 import datetime
-#import json
-#from pprint import pprint
+
 
 
 
@@ -51,7 +56,7 @@ column_dict = {
 Functions
 """
 
-def scoreboard(namn, klass, klubb, tid, number_of_participants, position):
+def scoreboard(name, klass, klubb, tid, number_of_participants, position):
 
     points = 5 + number_of_participants - position
 
@@ -60,7 +65,7 @@ def scoreboard(namn, klass, klubb, tid, number_of_participants, position):
         score_workbook[klass]["A" + str(position+2)] = position + 1
         score_workbook[klass]["A" + str(position+2)].alignment = Alignment(horizontal='left')
 
-        score_workbook[klass]["B" + str(position+2)] = namn # Name
+        score_workbook[klass]["B" + str(position+2)] = name # Name
 
         if klubb != None: # Dont write "None" as the club
             score_workbook[klass]["C" + str(position+2)] = klubb # Klubb
@@ -110,30 +115,30 @@ def fill_final_results():
 
     """
     This loop print the results saved in the dictionary to the final excel workbook.
+    The results won't be sorted. That is fixed later.
     """
     for klass in final_result_dict:
-        for position, namn in enumerate(final_result_dict[klass], 2):
+        for row, name in enumerate(final_result_dict[klass], 2):
             total_points = 0
-            for race in final_result_dict[klass][namn]:
+            for race in final_result_dict[klass][name]:
 
+                # The dict translates the race name to a specific column
                 column = column_dict[race]
-                #print(race)
 
-                #final_workbook[klass]["A" + str(final_position)] = final_position-1
-                final_workbook[klass]["A" + str(position)].alignment = Alignment(horizontal='left')
+                final_workbook[klass]["A" + str(row)].alignment = Alignment(horizontal='left') # Align the position
 
-                final_workbook[klass]["B" + str(position)] = namn
+                final_workbook[klass]["B" + str(row)] = name
 
-                final_workbook[klass][column + str(position)] = final_result_dict[klass][namn][race] # The race score for each race
-                final_workbook[klass][column + str(position)].alignment = Alignment(horizontal='left')
+                final_workbook[klass][column + str(row)] = final_result_dict[klass][name][race] # The race score for each race
+                final_workbook[klass][column + str(row)].alignment = Alignment(horizontal='center') # Align the race score
 
-                total_points += final_result_dict[klass][namn][race]
+                total_points += final_result_dict[klass][name][race]
 
-                final_workbook[klass][column + str(position)].alignment = Alignment(horizontal='center')
+                #final_workbook[klass][column + str(row)].alignment = Alignment(horizontal='center')
 
-            final_workbook[klass]["M" + str(position)] = total_points
-            final_workbook[klass]["M" + str(position)].alignment = Alignment(horizontal='left')
-            #final_position += 1
+            final_workbook[klass]["M" + str(row)] = total_points
+            final_workbook[klass]["M" + str(row)].alignment = Alignment(horizontal='left')
+
 
     # Save the final_workbook after all the results are saved
     final_workbook.save(filename="Syratomten Total Poängställning.xlsx")
@@ -340,6 +345,7 @@ if __name__ == "__main__":
     Testing some stuff
     """
 
+    
     # Load the workbook that includes all the race results
     real_final_workbook = load_workbook(filename=final_results_workbook_name)
     print("INFO: Opened " + final_results_workbook_name + " to sort it.")
