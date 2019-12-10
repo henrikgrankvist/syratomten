@@ -19,7 +19,9 @@ KLUBB = 2
 dt = 3
 workbook_sheets = ["Herr", "Dam", "Herr U23", "Dam U23"]
 workbooks_created = []
-final_results_workbook_name = "Syratomten Total Poängställning.xlsx"
+race_name = "Syratomten"
+final_results_workbook_name = race_name + " Total Poängställning.xlsx"
+
 
 column_dict1 = {
     0 : "A",
@@ -86,7 +88,7 @@ def scoreboard(name, klass, klubb, tid, number_of_participants, position):
 def fill_final_results():
 
     # Load the final score workbook
-    final_workbook = load_workbook(filename="Syratomten Total Poängställning.xlsx")
+    final_workbook = load_workbook(filename=final_results_workbook_name)
 
     final_result_dict = {}
 
@@ -141,8 +143,8 @@ def fill_final_results():
 
 
     # Save the final_workbook after all the results are saved
-    final_workbook.save(filename="Syratomten Total Poängställning.xlsx")
-    print("INFO: The workbook Syratomten Total Poängställning.xlsx was saved.")
+    final_workbook.save(filename=final_results_workbook_name)
+    print("INFO: The workbook " + final_results_workbook_name + " was saved.")
 
 
 
@@ -161,13 +163,13 @@ def create_race_workbook(workbook_name):
 
     # Create a workbook for each race
     workbook = Workbook()
-    workbook.save(filename="Syratomten " + workbook_name + ".xlsx")
-    print("INFO: Workbook Syratomten " + workbook_name + ".xlsx was created.")
+    workbook.save(filename=race_name + " " + workbook_name + ".xlsx")
+    print("INFO: Workbook " + race_name + " " + workbook_name + ".xlsx was created.")
 
     # Save the name of the workbooks created so I can open them later for the final results
-    workbooks_created.append("Syratomten " + workbook_name + ".xlsx")
+    workbooks_created.append(race_name + " "  + workbook_name + ".xlsx")
 
-    score_workbook = load_workbook(filename="Syratomten " + workbook_name + ".xlsx")
+    score_workbook = load_workbook(filename=race_name + " "  + workbook_name + ".xlsx")
 
     # Populate the workbook with the sheets listed in the list "workbook_sheets"
     for sheet in workbook_sheets:
@@ -366,8 +368,8 @@ if __name__ == "__main__":
                 dt += 1
 
                 # Save the content in the score workbook
-                score_workbook.save(filename="Syratomten " + workbooks + ".xlsx")
-                print ("INFO: Workbook Syratomten " + workbooks + ".xlsx was saved")
+                score_workbook.save(filename=race_name + " "  + workbooks + ".xlsx")
+                print ("INFO: Workbook " + race_name + " "  + workbooks + ".xlsx was saved")
 
     # Create the final results workbook
     create_final_results_workbook()
