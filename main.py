@@ -9,21 +9,6 @@ from openpyxl.styles import Alignment
 import datetime
 from docx import Document
 
-document = Document()
-
-
-table = document.add_table(rows=2, cols=2)
-cell = table.cell(0, 1)
-
-row = table.rows[1]
-row.cells[0].text = 'Foo bar to you.'
-row.cells[1].text = 'And a hearty foo bar to you too sir!'
-
-document.save('test.docx')
-
-
-
-
 NAME = 0
 KLASS = 1
 KLUBB = 2
@@ -72,12 +57,53 @@ Functions
 
 def scoreboard(name, klass, klubb, tid, number_of_participants, position):
 
+    #document = Document()
+
+    """
+    table = document.add_table(1, 6)
+
+    heading_cells = table.rows[0].cells
+    heading_cells[0].text = 'Placering'
+    heading_cells[1].text = 'Namn'
+    heading_cells[2].text = 'Klubb'
+    heading_cells[3].text = 'Tid'
+    heading_cells[4].text = 'Hastighet (km/h)'
+    heading_cells[5].text = 'Poäng'
+    """
+
+    #table = document.add_table(rows=2, cols=2)
+    #cell = table.cell(0, 1)
+
+    """row = table.rows[1]
+    row.cells[0].text = 'Foo bar to you.'
+    row.cells[1].text = 'And a hearty foo bar to you too sir!'
+    """
+    #document.save('test.docx')
+    #print("INFO: Saved test.docx.")
+
+    #heading_cells = table.rows[0].cells
+    #heading_cells[0].text = 'Qty'
+    #heading_cells[1].text = 'SKU'
+    #heading_cells[2].text = 'Description'
+
+    # add a data row for each item
+    """for item in items:
+        cells = table.add_row().cells
+        cells[0].text = str(item.qty)
+        cells[1].text = item.sku
+        cells[2].text = item.desc"""
+
     points = 5 + number_of_participants - position
 
     if tid != None: # If the tid is None, they have not raced
         pos1 = position + 1
         pos2 = str(position + 2)
 
+        # Word document
+        cells = table.add_row().cells
+        cells[0].text = str(pos1)
+        cells[1].text = name
+        #cells[2].text = klubb
 
         score_workbook[klass]["A" + pos2] = pos1
         score_workbook[klass]["A" + pos2].alignment = Alignment(horizontal='left')
@@ -85,6 +111,7 @@ def scoreboard(name, klass, klubb, tid, number_of_participants, position):
 
         if klubb != None: # Dont write "None" as the club
             score_workbook[klass]["C" + pos2] = klubb # Klubb
+            cells[2].text = klubb
 
 
         min2hrs = int(datetime.datetime.strptime(tid, "%M:%S").strftime("%M"))/60
@@ -92,12 +119,19 @@ def scoreboard(name, klass, klubb, tid, number_of_participants, position):
         speed = 19.5 / (min2hrs + sec2hrs)
 
         score_workbook[klass]["D" + pos2] = tid  # Tid
+        cells[3].text = tid
+
         score_workbook[klass]["E" + pos2] = "{:.1f}".format(speed) # speed
+        cells[4].text = str("{:.1f}".format(speed))
 
 
         if klubb == "Väsby SS Triathlon": # Only Väsby Triathlon members gets a score
             score_workbook[klass]["F" + pos2] = points      # points
             score_workbook[klass]["F" + pos2].alignment = Alignment(horizontal='left')
+            cells[5].text = str(points)
+
+            #document.save('Syratomten .docx')
+            #exit()
 
         return pos1
     else: # If tid was none, dont increase the position
@@ -308,6 +342,9 @@ if __name__ == "__main__":
 
     # Load the workbook that includes all the race results
     init_workbook = load_workbook(filename="st-test2.xlsx")
+    document = Document()
+
+
 
     # Append all the values in the initial workbook to a list. It is easyier to work with
     result_list = []
@@ -317,6 +354,17 @@ if __name__ == "__main__":
 
     # For each race in the workbook
     for race in init_workbook["Syra Tomten"].iter_rows(min_row=1, max_row=1, min_col=4, values_only=True):
+
+        # It should be one table per class, but it will be hard to fix.
+        table = document.add_table(1, 6)
+
+        heading_cells = table.rows[0].cells
+        heading_cells[0].text = 'Placering'
+        heading_cells[1].text = 'Namn'
+        heading_cells[2].text = 'Klubb'
+        heading_cells[3].text = 'Tid'
+        heading_cells[4].text = 'Hastighet (km/h)'
+        heading_cells[5].text = 'Poäng'
 
         for workbooks in race:
 
@@ -388,6 +436,8 @@ if __name__ == "__main__":
                 # Save the content in the score workbook
                 score_workbook.save(filename=race_name + " "  + workbooks + ".xlsx")
                 print ("INFO: Workbook " + race_name + " "  + workbooks + ".xlsx was saved")
+
+                document.save(race_name + " "  + workbooks + ".docx")
 
     # Create the final results workbook
     create_final_results_workbook()
