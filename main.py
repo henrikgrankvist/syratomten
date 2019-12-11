@@ -75,25 +75,30 @@ def scoreboard(name, klass, klubb, tid, number_of_participants, position):
     points = 5 + number_of_participants - position
 
     if tid != None: # If the tid is None, they have not raced
+        pos1 = position + 1
+        pos2 = str(position + 2)
 
-        score_workbook[klass]["A" + str(position+2)] = position + 1
-        score_workbook[klass]["A" + str(position+2)].alignment = Alignment(horizontal='left')
 
-        score_workbook[klass]["B" + str(position+2)] = name # Name
+        score_workbook[klass]["A" + pos2] = pos1
+        score_workbook[klass]["A" + pos2].alignment = Alignment(horizontal='left')
+        score_workbook[klass]["B" + pos2] = name # Name
 
         if klubb != None: # Dont write "None" as the club
-            score_workbook[klass]["C" + str(position+2)] = klubb # Klubb
+            score_workbook[klass]["C" + pos2] = klubb # Klubb
 
 
-        score_workbook[klass]["D" + str(position+2)] = tid  # Tid
-        score_workbook[klass]["E" + str(position+2)] = "{:.1f}".format(19.5/(int(datetime.datetime.strptime(tid, "%M:%S").strftime("%M"))/60 + int(datetime.datetime.strptime(tid, "%M:%S").strftime("%S"))/3600)) # speed
+        min2hrs = 19.5/(int(datetime.datetime.strptime(tid, "%M:%S").strftime("%M"))/60
+        sec2hrs = int(datetime.datetime.strptime(tid, "%M:%S").strftime("%S"))/3600)
+
+        score_workbook[klass]["D" + pos2] = tid  # Tid
+        score_workbook[klass]["E" + pos2] = "{:.1f}".format( min2hrs + sec2hrs) # speed
 
 
         if klubb == "Väsby SS Triathlon": # Only Väsby Triathlon members gets a score
-            score_workbook[klass]["F" + str(position+2)] = points      # points
-            score_workbook[klass]["F" + str(position+2)].alignment = Alignment(horizontal='left')
+            score_workbook[klass]["F" + pos2] = points      # points
+            score_workbook[klass]["F" + pos2].alignment = Alignment(horizontal='left')
 
-        return position + 1
+        return pos1
     else: # If tid was none, dont increase the position
         return position
 
