@@ -29,7 +29,7 @@ KLASS = 1
 KLUBB = 2
 
 dt = 3
-workbook_sheets = ["Herr", "Dam", "Herr U23", "Dam U23"]
+workbook_sheets = ["Herr", "Dam", "Herr U23", "Dam U23"] # Optional improvement is to read the classes from the init workbook
 workbooks_created = []
 race_name = "Syratomten"
 final_results_workbook_name = race_name + " Total Poängställning.xlsx"
