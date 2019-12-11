@@ -7,7 +7,7 @@ from openpyxl import load_workbook
 from openpyxl import Workbook
 from openpyxl.styles import Alignment
 import datetime
-"""from docx import Document
+from docx import Document
 
 document = Document()
 
@@ -19,7 +19,7 @@ row = table.rows[1]
 row.cells[0].text = 'Foo bar to you.'
 row.cells[1].text = 'And a hearty foo bar to you too sir!'
 
-document.save('test.docx')"""
+document.save('test.docx')
 
 
 
