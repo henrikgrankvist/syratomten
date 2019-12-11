@@ -87,11 +87,12 @@ def scoreboard(name, klass, klubb, tid, number_of_participants, position):
             score_workbook[klass]["C" + pos2] = klubb # Klubb
 
 
-        min2hrs = 19.5/(int(datetime.datetime.strptime(tid, "%M:%S").strftime("%M"))/60
-        sec2hrs = int(datetime.datetime.strptime(tid, "%M:%S").strftime("%S"))/3600)
+        min2hrs = int(datetime.datetime.strptime(tid, "%M:%S").strftime("%M"))/60
+        sec2hrs = int(datetime.datetime.strptime(tid, "%M:%S").strftime("%S"))/3600
+        speed = 19.5 / (min2hrs + sec2hrs)
 
         score_workbook[klass]["D" + pos2] = tid  # Tid
-        score_workbook[klass]["E" + pos2] = "{:.1f}".format( min2hrs + sec2hrs) # speed
+        score_workbook[klass]["E" + pos2] = "{:.1f}".format(speed) # speed
 
 
         if klubb == "Väsby SS Triathlon": # Only Väsby Triathlon members gets a score
