@@ -7,22 +7,9 @@ from openpyxl import load_workbook
 from openpyxl import Workbook
 from openpyxl.styles import Alignment
 import datetime
-"""from docx import Document
+import sys
 
-document = Document()
-
-
-table = document.add_table(rows=2, cols=2)
-cell = table.cell(0, 1)
-
-row = table.rows[1]
-row.cells[0].text = 'Foo bar to you.'
-row.cells[1].text = 'And a hearty foo bar to you too sir!'
-
-document.save('test.docx')"""
-
-
-
+from module.googleapi import Google
 
 NAME = 0
 KLASS = 1
@@ -33,6 +20,12 @@ workbook_sheets = ["Herr", "Dam", "Herr U23", "Dam U23"] # Optional improvement 
 workbooks_created = []
 race_name = "Syratomten"
 final_results_workbook_name = race_name + " Total Poängställning.xlsx"
+
+google_sheet = {
+        "spreadsheetId": "1bZAB1gelK82fzusrxsaYxEg2mntBaga6ds62nD8Eu1I",
+        "sheetName": "Test",
+        "range": "!A2:M"
+}
 
 
 column_dict1 = {
@@ -306,9 +299,15 @@ def sort_final_results():
 
 if __name__ == "__main__":
 
-    # Load the workbook that includes all the race results
-    init_workbook = load_workbook(filename="st-test2.xlsx")
 
+    # Load the workbook that includes all the race results
+    #init_workbook = load_workbook(filename="st-test2.xlsx")
+
+    init_workbook = Google.get(google_sheet["spreadsheetId"], google_sheet["sheetName"], google_sheet["range"])
+
+    print(init_workbook)
+
+    exit()
     # Append all the values in the initial workbook to a list. It is easyier to work with
     result_list = []
 
