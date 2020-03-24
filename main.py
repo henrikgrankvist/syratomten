@@ -307,13 +307,19 @@ if __name__ == "__main__":
 
     print(init_workbook)
 
-    exit()
+    for participant in init_workbook:
+        print(participant)
+
+
     # Append all the values in the initial workbook to a list. It is easyier to work with
-    result_list = []
+    #result_list = []
 
-    for values in init_workbook["Syra Tomten"].iter_rows(min_row=2, values_only=True):
-        result_list.append(values)
+    #for values in init_workbook["Syra Tomten"].iter_rows(min_row=2, values_only=True):
+    #    result_list.append(values)
 
+
+    Google.create("Syratomten Deltävling 1")
+    exit()
     # For each race in the workbook
     for race in init_workbook["Syra Tomten"].iter_rows(min_row=1, max_row=1, min_col=4, values_only=True):
 

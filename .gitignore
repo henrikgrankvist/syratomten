@@ -1,3 +1,6 @@
 venv/
+token.pickle
+credentials.json
+module/__pycache__/
 *.xlsx
 !st-test2.xlsx
