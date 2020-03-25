@@ -316,13 +316,94 @@ if __name__ == "__main__":
     #races = main_workbook[0][3:] # Saves the race names based on the heading in the spreadsheet.
     races = ['Deltävling 1', 'Deltävling 2', 'Deltävling 3', 'Deltävling 4', 'Deltävling 5', 'Deltävling 6', 'Deltävling 7', 'Deltävling 8', 'Deltävling 9', 'Final']
     classes = ["Herr", "Herr U23", "Dam", "Dam U23"]
-    main_workbook = Google.get(google_sheet["spreadsheetId"], google_sheet["sheetName"], "!A1:M")
+
+    """
+    ##############################################
+    """
+    main_workbook = Google.get(google_sheet["spreadsheetId"], google_sheet["sheetName"], "!A2:M")
+
+    """
+    {
+        "race": "Deltävling 1"
+        "participants" [
+            {
+                "name": "Henrik Grankvist",
+                "class": "Herr",
+                "club": "Väsby SS Triathlon",
+                "result": 29:00
+            },
+            {
+                "name": "Pontus Bohlin",
+                "class": "Herr",
+                "club": "Väsby SS Triathlon",
+                "result": 29:40
+            }
+        ]
+    }
+    """
+    translate_idx_to_race = {
+        3 : "Deltävling 1",
+        4 : "Deltävling 2",
+        5 : "Deltävling 3",
+        6 : "Deltävling 4",
+        7 : "Deltävling 5",
+        8 : "Deltävling 6",
+        9 : "Deltävling 7",
+        10 : "Deltävling 8",
+        11 : "Deltävling 9",
+        12 : "Final",
+    }
+
+    """
+    for entitlement in heimdall_master_list:
+
+        while(True):
+            try:
+                if entitlement[8] == "Y":
+                    break
+                else:
+                    break
+            except IndexError:
+                entitlement.append("")
+    """
+    for participant in main_workbook:
+        while len(participant) <= 12:
+            participant.append("")
 
     race_result_dict = {}
-    for race in races: # Create dictionary structure for each race
+    total_race_result_list =  []
+    # Create dictionary structure for each race
+
+    for idx,race in enumerate(races):
+
+        race_result_dict["race"] = race
+        race_result_dict["participants"] = []
+
+        for participant in main_workbook:
+            if participant[3+idx]:
+                #print(race, participant[0], participant[1], participant[2], participant[3+idx])
+                participant_structur = {
+                    "name": participant[0],
+                    "class": participant[1],
+                    "club": participant[2],
+                    "result": participant[3+idx]
+                }
+
+                race_result_dict["participants"].append(participant_structur)
+
+                participant_structur = {}
+
+        total_race_result_list.append(race_result_dict)
+        print(idx, total_race_result_list)
+
+
+    print(json.dumps(total_race_result_list, sort_keys=False, indent=4))
+    exit()
+
+    """for race in races:
         race_result_dict[race] = {}
         for race_class in classes:
-            race_result_dict[race][race_class] = {}
+            race_result_dict[race][race_class] = {}"""
 
     #print(race_result_dict)
     #exit()

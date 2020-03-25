@@ -1,0 +1,72 @@
+
+{
+    "name": "Henrik Grankvist",
+    "class": "Herr",
+    "club": "Väsby SS Triathlon",
+    "result" {
+        "Deltävling 1": 29:00,
+        "Deltävling 2": 29:30,
+    }
+}
+
+
+
+
+{
+    "name": "Henrik Grankvist",
+    "class": "Herr",
+    "club": "Väsby SS Triathlon",
+    "result" {
+        "race1" {
+            "name": "Deltävling 1",
+            "time": 29:00
+        },
+        "race1" {
+            "name": "Deltävling 2",
+            "time": 29:30
+        }
+    }
+}
+
+
+
+
+
+{
+    "race": "Deltävling 1"
+    "participants" [
+        {
+            "name": "Henrik Grankvist",
+            "class": "Herr",
+            "club": "Väsby SS Triathlon",
+            "result": 29:00
+        },
+        {
+            "name": "Pontus Bohlin",
+            "class": "Herr",
+            "club": "Väsby SS Triathlon",
+            "result": 29:40
+        }
+    ]
+}
+
+
+
+
+
+{
+    "name": "Henrik Grankvist",
+    "class": "Herr",
+    "club": "Väsby SS Triathlon",
+    "result" [
+      {
+        "name": "Deltävling 1",
+        "time": 29:00
+      },
+      {
+          "name": "Deltävling 2",
+          "time": 29:30
+      }
+      ]
+    }
+}
