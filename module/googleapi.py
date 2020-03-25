@@ -49,8 +49,9 @@ class Google:
         }
         spreadsheet = service.spreadsheets().create(body=spreadsheet,fields='spreadsheetId').execute()
         print('Spreadsheet ID: {0}'.format(spreadsheet.get('spreadsheetId')))
+        return spreadsheet.get('spreadsheetId')
 
-    def get(spreadsheet_id=None, sheet_name=None, sheet_range='!A2:I'):
+    def get(spreadsheet_id=None, sheet_name=None, sheet_range='!A1:I'):
 
         creds = Google.token()
 

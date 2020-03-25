@@ -8,6 +8,7 @@ from openpyxl import Workbook
 from openpyxl.styles import Alignment
 import datetime
 import sys
+import json
 
 from module.googleapi import Google
 
@@ -167,6 +168,14 @@ def sort_individual_race(elem):
     else: # If the value is None return "00:00" instead. Otherwise the sort() function will try to sort None, which doesn't work
         return "00:00"
 
+"""
+def new_sort_individual_race(elem):
+    if elem[dt]: # If the values is not None, return that value
+        return elem[dt]
+    else: # If the value is None return "00:00" instead. Otherwise the sort() function will try to sort None, which doesn't work
+        return "00:00
+"""
+
 def sort_final_score(elem):
     return elem[12]
 
@@ -301,29 +310,75 @@ if __name__ == "__main__":
 
 
     # Load the workbook that includes all the race results
-    #init_workbook = load_workbook(filename="st-test2.xlsx")
+    init_workbook = load_workbook(filename="st-test2.xlsx")
 
-    init_workbook = Google.get(google_sheet["spreadsheetId"], google_sheet["sheetName"], google_sheet["range"])
+    #main_workbook = Google.get(google_sheet["spreadsheetId"], google_sheet["sheetName"], google_sheet["range"])
+    #races = main_workbook[0][3:] # Saves the race names based on the heading in the spreadsheet.
+    races = ['Deltävling 1', 'Deltävling 2', 'Deltävling 3', 'Deltävling 4', 'Deltävling 5', 'Deltävling 6', 'Deltävling 7', 'Deltävling 8', 'Deltävling 9', 'Final']
+    classes = ["Herr", "Herr U23", "Dam", "Dam U23"]
+    main_workbook = Google.get(google_sheet["spreadsheetId"], google_sheet["sheetName"], "!A1:M")
 
-    print(init_workbook)
+    race_result_dict = {}
+    for race in races: # Create dictionary structure for each race
+        race_result_dict[race] = {}
+        for race_class in classes:
+            race_result_dict[race][race_class] = {}
 
-    for participant in init_workbook:
-        print(participant)
+    #print(race_result_dict)
+    #exit()
 
+    #print(race_result_dict)
+    for idx, participant in enumerate(main_workbook):
+        print(str(idx), participant)
+        if idx == 0:
+            continue
+
+        race_result_dict["Deltävling 1"][participant[1]][participant[0]] = participant[3]
+
+    print(json.dumps(race_result_dict, sort_keys=False, indent=4))
+    exit()
+
+    """
+    ##############################################
+    """
+    main_workbook = Google.get(google_sheet["spreadsheetId"], google_sheet["sheetName"], google_sheet["range"])
+
+
+
+    exit()
+    for race in races:
+        main_workbook.sort(key=sort_individual_race)
+    race_result_list = []
+    for participant in main_workbook:
+        if participant[3]:
+            #race_result_list.append(participant[0],participant[2],participant[3])
+            print(participant[0],participant[3])
+
+    race_spreadsheet = Google.create("Syratomten Deltävling 1")
+    print(race_spreadsheet)
+    Google.update(race_spreadsheet, "Blad1", google_sheet["range"], main_workbook)
+
+    print("\n\n\n")
+    exit()
 
     # Append all the values in the initial workbook to a list. It is easyier to work with
-    #result_list = []
+    result_list = []
 
-    #for values in init_workbook["Syra Tomten"].iter_rows(min_row=2, values_only=True):
-    #    result_list.append(values)
+    # The spreadsheet data is read as a tuple
+    for values in init_workbook["Syra Tomten"].iter_rows(min_row=2, values_only=True):
+        result_list.append(values)
 
-
-    Google.create("Syratomten Deltävling 1")
+    print(result_list)
     exit()
+
+    #Google.create("Syratomten Deltävling 1")
+
+
     # For each race in the workbook
-    for race in init_workbook["Syra Tomten"].iter_rows(min_row=1, max_row=1, min_col=4, values_only=True):
+    for race in init_workbook["Syra Tomten"].iter_rows(min_row=1, max_row=1, min_col=4, values_only=True): # Reads the different race names in the spreadsheet
 
         for workbooks in race:
+
 
             # Sort the result_list based on the times
             try:
