@@ -9,6 +9,7 @@ from openpyxl.styles import Alignment
 import datetime
 import sys
 import json
+import copy
 
 from module.googleapi import Google
 
@@ -168,13 +169,11 @@ def sort_individual_race(elem):
     else: # If the value is None return "00:00" instead. Otherwise the sort() function will try to sort None, which doesn't work
         return "00:00"
 
-"""
 def new_sort_individual_race(elem):
-    if elem[dt]: # If the values is not None, return that value
-        return elem[dt]
+    if elem[2]: # If the values is not None, return that value
+        return elem[2]
     else: # If the value is None return "00:00" instead. Otherwise the sort() function will try to sort None, which doesn't work
-        return "00:00
-"""
+        return "00:00"
 
 def sort_final_score(elem):
     return elem[12]
@@ -305,6 +304,10 @@ def sort_final_results():
     real_final_workbook.save(filename=final_results_workbook_name)
     print("INFO: The workbook " + final_results_workbook_name + " was saved.")
 
+def calculate_speed(time):
+    min2hrs = int(datetime.datetime.strptime(time, "%M:%S").strftime("%M"))/60
+    sec2hrs = int(datetime.datetime.strptime(time, "%M:%S").strftime("%S"))/3600
+    return 19.5 / (min2hrs + sec2hrs)
 
 if __name__ == "__main__":
 
@@ -322,7 +325,34 @@ if __name__ == "__main__":
     """
     main_workbook = Google.get(google_sheet["spreadsheetId"], google_sheet["sheetName"], "!A2:M")
 
+
     """
+    translate_idx_to_race = {
+        3 : "Deltävling 1",
+        4 : "Deltävling 2",
+        5 : "Deltävling 3",
+        6 : "Deltävling 4",
+        7 : "Deltävling 5",
+        8 : "Deltävling 6",
+        9 : "Deltävling 7",
+        10 : "Deltävling 8",
+        11 : "Deltävling 9",
+        12 : "Final",
+    }
+    """
+
+    """
+    Only cells that have data are returned. This breaks the script, so the script
+    starts with filling blank cells up to column 12.
+    """
+    for participant in main_workbook:
+        while len(participant) <= 12:
+            participant.append("")
+
+
+    """
+    Takes the main_workbook which is a array and rebuilds it to an dictionary
+    with the data more structured. Like this:
     {
         "race": "Deltävling 1"
         "participants" [
@@ -341,73 +371,112 @@ if __name__ == "__main__":
         ]
     }
     """
-    translate_idx_to_race = {
-        3 : "Deltävling 1",
-        4 : "Deltävling 2",
-        5 : "Deltävling 3",
-        6 : "Deltävling 4",
-        7 : "Deltävling 5",
-        8 : "Deltävling 6",
-        9 : "Deltävling 7",
-        10 : "Deltävling 8",
-        11 : "Deltävling 9",
-        12 : "Final",
-    }
-
-    """
-    for entitlement in heimdall_master_list:
-
-        while(True):
-            try:
-                if entitlement[8] == "Y":
-                    break
-                else:
-                    break
-            except IndexError:
-                entitlement.append("")
-    """
-    for participant in main_workbook:
-        while len(participant) <= 12:
-            participant.append("")
-
-    race_result_dict = {}
     total_race_result_list =  []
-    # Create dictionary structure for each race
-
     for idx,race in enumerate(races):
-
+        race_result_dict = {} # Without clearing the dictionary the data will be overwritten in the total_race_result_list
         race_result_dict["race"] = race
         race_result_dict["participants"] = []
 
         for participant in main_workbook:
+            participant_structur = {} # Clear the dictionary
             if participant[3+idx]:
-                #print(race, participant[0], participant[1], participant[2], participant[3+idx])
                 participant_structur = {
                     "name": participant[0],
                     "class": participant[1],
                     "club": participant[2],
                     "result": participant[3+idx]
                 }
-
                 race_result_dict["participants"].append(participant_structur)
 
-                participant_structur = {}
 
         total_race_result_list.append(race_result_dict)
-        print(idx, total_race_result_list)
 
 
-    print(json.dumps(total_race_result_list, sort_keys=False, indent=4))
-    exit()
+    #print(json.dumps(total_race_result_list, sort_keys=False, indent=4))
+    """
+    To update a google spreadsheet the data needs to be a array.
+    Each user and its result has its own list. The list is cleared between each
+    race.
+    """
+    sheet_titles_list = [] # The sheet titles are sent as a list
 
-    """for race in races:
-        race_result_dict[race] = {}
+    # Fill the sheet_titles_list with the name of the sheets that the spreadsheet should have
+    for race_class in classes:
+        sheet_dict = {}
+        sheet_dict["properties"] = {"title" : race_class}
+        sheet_titles_list.append(sheet_dict)
+
+
+
+    for race in total_race_result_list:
+        #print(race["race"])
+        race_spreadsheet = Google.create_spreadsheet(race["race"], sheet_titles_list)
+        print('Spreadsheet {race["race"]} is created')
+
+        herr_race_list = []
+        dam_race_list = []
+        herru23_race_list = []
+        damu23_race_list = []
+
+        herr_number_of_participants = 0
+        dam_number_of_participants = 0
+        herru23_number_of_participants = 0
+        damu23_number_of_participants = 0
+
+        for participant in race["participants"]:
+            print(participant["name"], participant["result"])
+            update_user_list = []
+            update_user_list.append(participant["name"])
+            update_user_list.append(participant["club"])
+            update_user_list.append(participant["result"])
+
+            speed = calculate_speed(participant["result"])
+            update_user_list.append("{:.1f}".format(speed))
+
+
+
+
+            if participant["class"] == "Herr" or  participant["class"] == "Herr U23":
+                herr_race_list.append(update_user_list)
+                herr_number_of_participants += 1
+            elif participant["class"] == "Dam" or participant["class"] == "Dam U23":
+                dam_race_list.append(update_user_list)
+                dam_number_of_participants += 1
+
+            if participant["class"] == "Herr U23":
+                herru23_race_list.append(update_user_list)
+                herru23_number_of_participants += 1
+            elif participant["class"] == "Dam U23":
+                damu23_race_list.append(update_user_list)
+                damu23_number_of_participants += 1
+
+        print(herr_race_list)
+
+        # Sort the lists based on the result
+        herr_race_list.sort(key=new_sort_individual_race)
+        dam_race_list.sort(key=new_sort_individual_race)
+        herru23_race_list.sort(key=new_sort_individual_race)
+        damu23_race_list.sort(key=new_sort_individual_race)
+
+
         for race_class in classes:
-            race_result_dict[race][race_class] = {}"""
+            if race_class == "Herr":
+                Google.update(race_spreadsheet, race_class, google_sheet["range"], herr_race_list)
+            elif race_class == "Dam":
+                Google.update(race_spreadsheet, race_class, google_sheet["range"], dam_race_list)
+            elif race_class == "Herr U23":
+                Google.update(race_spreadsheet, race_class, google_sheet["range"], herru23_race_list)
+            elif race_class == "Dam U23":
+                Google.update(race_spreadsheet, race_class, google_sheet["range"], damu23_race_list)
 
-    #print(race_result_dict)
-    #exit()
 
+        exit()
+
+
+
+    """
+    ##############################################
+    """
     #print(race_result_dict)
     for idx, participant in enumerate(main_workbook):
         print(str(idx), participant)

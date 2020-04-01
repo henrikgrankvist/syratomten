@@ -36,16 +36,17 @@ class Google:
 
         return creds
 
-    def create(spreadsheet_title):
+    def create_spreadsheet(spreadsheet_title, sheet_titles):
 
         creds = Google.token()
 
         service = build('sheets', 'v4', credentials=creds)
 
         spreadsheet = {
-            'properties': {
-                'title': spreadsheet_title
-            }
+            "properties": {
+                "title": spreadsheet_title
+            },
+            "sheets": sheet_titles
         }
         spreadsheet = service.spreadsheets().create(body=spreadsheet,fields='spreadsheetId').execute()
         print('Spreadsheet ID: {0}'.format(spreadsheet.get('spreadsheetId')))
