@@ -320,7 +320,7 @@ if __name__ == "__main__":
     #main_workbook = Google.get(google_sheet["spreadsheetId"], google_sheet["sheetName"], google_sheet["range"])
     #races = main_workbook[0][3:] # Saves the race names based on the heading in the spreadsheet.
     races = ['Deltävling 1', 'Deltävling 2', 'Deltävling 3', 'Deltävling 4', 'Deltävling 5', 'Deltävling 6', 'Deltävling 7', 'Deltävling 8', 'Deltävling 9', 'Final']
-    classes = ["Herr", "Herr U23"]
+    classes = ["Herr", "Dam"]
 
     """
     ##############################################
@@ -400,7 +400,7 @@ if __name__ == "__main__":
     Each user and its result has its own list. The list is cleared between each
     race.
     """
-    sheet_titles_list = [] # The sheet titles are sent as a list
+    sheet_titles_list = [] # The sheet titles are sent as a list in the Google API
 
     # Fill the sheet_titles_list with the name of the sheets that the spreadsheet should have
     for race_class in classes:
@@ -412,21 +412,18 @@ if __name__ == "__main__":
 
     for race in total_race_result_list:
 
-        race_spreadsheet = Google.create_spreadsheet(race["race"], sheet_titles_list)
-        print(f'Created spreadsheet for {race["race"]}')
+        #race_spreadsheet = Google.create_spreadsheet(race["race"], sheet_titles_list)
+        #print(f'Created spreadsheet for {race["race"]}')
 
         herr_race_list = []
         dam_race_list = []
-        #herru23_race_list = []
-        #damu23_race_list = []
 
         herr_number_of_participants = 0
         dam_number_of_participants = 0
-        #herru23_number_of_participants = 0
-        #damu23_number_of_participants = 0
+
 
         for participant in race["participants"]:
-            print(participant["name"], participant["result"])
+            #print(participant["name"], participant["result"])
             update_user_list = []
             update_user_list.append(participant["name"])
             update_user_list.append(participant["club"])
@@ -435,9 +432,6 @@ if __name__ == "__main__":
             speed = calculate_speed(participant["result"])
             update_user_list.append("{:.1f}".format(speed))
 
-
-
-
             if participant["class"] == "Herr":
                 herr_race_list.append(update_user_list)
                 herr_number_of_participants += 1
@@ -445,53 +439,39 @@ if __name__ == "__main__":
                 dam_race_list.append(update_user_list)
                 dam_number_of_participants += 1
 
-            """if participant["class"] == "Herr U23":
-                herru23_race_list.append(update_user_list)
-                herru23_number_of_participants += 1
-            elif participant["class"] == "Dam U23":
-                damu23_race_list.append(update_user_list)
-                damu23_number_of_participants += 1"""
-
-        print(herr_race_list)
 
         if DEBUG: print(f"""Number of participants:
         Herr: {herr_number_of_participants}
         Dam: {dam_number_of_participants}""")
 
+        if herr_number_of_participants == 0 and dam_number_of_participants == 0:
+            continue # If there are not participants in the race, continue to the next race.
 
+        race_spreadsheet = Google.create_spreadsheet("Poängräkning " + race["race"], sheet_titles_list)
+        print(f'Created spreadsheet for {race["race"]}')
+
+        race["spreadsheet_id"] = race_spreadsheet
 
 
         # Sort the lists based on the result
         herr_race_list.sort(key=new_sort_individual_race)
         dam_race_list.sort(key=new_sort_individual_race)
-        #herru23_race_list.sort(key=new_sort_individual_race)
-        #damu23_race_list.sort(key=new_sort_individual_race)
 
         position_herr = 0
         position_dam = 0
-        #position_herru23 = 0
-        #position_damu23 = 0
 
-        #points = 5 + number_of_participants - position
         for participant in herr_race_list:
             participant.insert(0, position_herr+1)
-            participant.append(5 + herr_number_of_participants - position_herr)
+            if "Väsby SS Triathlon" in participant: # Lazy search for Väsby SS Traithlon as the club. Only members of Väsby SS Traithlon get points
+                participant.append(5 + herr_number_of_participants - position_herr)
             position_herr +=1
 
         for participant in dam_race_list:
             participant.insert(0, position_dam+1)
-            participant.append(5 + dam_number_of_participants - position_dam)
+            if "Väsby SS Triathlon" in participant: # Lazy search for Väsby SS Traithlon as the club. Only members of Väsby SS Traithlon get points
+                participant.append(5 + dam_number_of_participants - position_dam)
             position_dam +=1
 
-        """for participant in herru23_race_list:
-            participant.insert(0, position_herru23+1)
-            participant.append(5 + herru23_number_of_participants - position_herru23)
-            position_herru23 +=1
-
-        for participant in damu23_race_list:
-            participant.insert(0, position_damu23+1)
-            participant.append(5 + damu23_number_of_participants - position_damu23)
-            position_damu23 +=1"""
 
 
         for race_class in classes:
@@ -499,12 +479,16 @@ if __name__ == "__main__":
                 Google.update(race_spreadsheet, race_class, google_sheet["range"], herr_race_list)
             elif race_class == "Dam":
                 Google.update(race_spreadsheet, race_class, google_sheet["range"], dam_race_list)
-            """
-            elif race_class == "Herr U23":
-                Google.update(race_spreadsheet, race_class, google_sheet["range"], herru23_race_list)
-            elif race_class == "Dam U23":
-                Google.update(race_spreadsheet, race_class, google_sheet["range"], damu23_race_list)
-            """
+
+
+
+
+    #print(json.dumps(total_race_result_list, sort_keys=False, indent=4))
+    if DEBUG:
+        for race in total_race_result_list:
+            if "spreadsheet_id" in race:
+                print(race["race"], race["spreadsheet_id"])
+
 
 
 
@@ -514,6 +498,7 @@ if __name__ == "__main__":
     """
     ##############################################
     """
+    exit()
     #print(race_result_dict)
     for idx, participant in enumerate(main_workbook):
         print(str(idx), participant)
@@ -523,7 +508,7 @@ if __name__ == "__main__":
         race_result_dict["Deltävling 1"][participant[1]][participant[0]] = participant[3]
 
     print(json.dumps(race_result_dict, sort_keys=False, indent=4))
-    exit()
+
 
     """
     ##############################################
