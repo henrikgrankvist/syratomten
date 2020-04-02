@@ -2,6 +2,8 @@
 Participants needs unique names
 """
 
+DEBUG = True
+
 
 from openpyxl import load_workbook
 from openpyxl import Workbook
@@ -318,7 +320,7 @@ if __name__ == "__main__":
     #main_workbook = Google.get(google_sheet["spreadsheetId"], google_sheet["sheetName"], google_sheet["range"])
     #races = main_workbook[0][3:] # Saves the race names based on the heading in the spreadsheet.
     races = ['Deltävling 1', 'Deltävling 2', 'Deltävling 3', 'Deltävling 4', 'Deltävling 5', 'Deltävling 6', 'Deltävling 7', 'Deltävling 8', 'Deltävling 9', 'Final']
-    classes = ["Herr", "Herr U23", "Dam", "Dam U23"]
+    classes = ["Herr", "Herr U23"]
 
     """
     ##############################################
@@ -409,19 +411,19 @@ if __name__ == "__main__":
 
 
     for race in total_race_result_list:
-        #print(race["race"])
+
         race_spreadsheet = Google.create_spreadsheet(race["race"], sheet_titles_list)
-        print('Spreadsheet {race["race"]} is created')
+        print(f'Created spreadsheet for {race["race"]}')
 
         herr_race_list = []
         dam_race_list = []
-        herru23_race_list = []
-        damu23_race_list = []
+        #herru23_race_list = []
+        #damu23_race_list = []
 
         herr_number_of_participants = 0
         dam_number_of_participants = 0
-        herru23_number_of_participants = 0
-        damu23_number_of_participants = 0
+        #herru23_number_of_participants = 0
+        #damu23_number_of_participants = 0
 
         for participant in race["participants"]:
             print(participant["name"], participant["result"])
@@ -436,27 +438,60 @@ if __name__ == "__main__":
 
 
 
-            if participant["class"] == "Herr" or  participant["class"] == "Herr U23":
+            if participant["class"] == "Herr":
                 herr_race_list.append(update_user_list)
                 herr_number_of_participants += 1
-            elif participant["class"] == "Dam" or participant["class"] == "Dam U23":
+            elif participant["class"] == "Dam":
                 dam_race_list.append(update_user_list)
                 dam_number_of_participants += 1
 
-            if participant["class"] == "Herr U23":
+            """if participant["class"] == "Herr U23":
                 herru23_race_list.append(update_user_list)
                 herru23_number_of_participants += 1
             elif participant["class"] == "Dam U23":
                 damu23_race_list.append(update_user_list)
-                damu23_number_of_participants += 1
+                damu23_number_of_participants += 1"""
 
         print(herr_race_list)
+
+        if DEBUG: print(f"""Number of participants:
+        Herr: {herr_number_of_participants}
+        Dam: {dam_number_of_participants}""")
+
+
+
 
         # Sort the lists based on the result
         herr_race_list.sort(key=new_sort_individual_race)
         dam_race_list.sort(key=new_sort_individual_race)
-        herru23_race_list.sort(key=new_sort_individual_race)
-        damu23_race_list.sort(key=new_sort_individual_race)
+        #herru23_race_list.sort(key=new_sort_individual_race)
+        #damu23_race_list.sort(key=new_sort_individual_race)
+
+        position_herr = 0
+        position_dam = 0
+        #position_herru23 = 0
+        #position_damu23 = 0
+
+        #points = 5 + number_of_participants - position
+        for participant in herr_race_list:
+            participant.insert(0, position_herr+1)
+            participant.append(5 + herr_number_of_participants - position_herr)
+            position_herr +=1
+
+        for participant in dam_race_list:
+            participant.insert(0, position_dam+1)
+            participant.append(5 + dam_number_of_participants - position_dam)
+            position_dam +=1
+
+        """for participant in herru23_race_list:
+            participant.insert(0, position_herru23+1)
+            participant.append(5 + herru23_number_of_participants - position_herru23)
+            position_herru23 +=1
+
+        for participant in damu23_race_list:
+            participant.insert(0, position_damu23+1)
+            participant.append(5 + damu23_number_of_participants - position_damu23)
+            position_damu23 +=1"""
 
 
         for race_class in classes:
@@ -464,13 +499,15 @@ if __name__ == "__main__":
                 Google.update(race_spreadsheet, race_class, google_sheet["range"], herr_race_list)
             elif race_class == "Dam":
                 Google.update(race_spreadsheet, race_class, google_sheet["range"], dam_race_list)
+            """
             elif race_class == "Herr U23":
                 Google.update(race_spreadsheet, race_class, google_sheet["range"], herru23_race_list)
             elif race_class == "Dam U23":
                 Google.update(race_spreadsheet, race_class, google_sheet["range"], damu23_race_list)
+            """
 
 
-        exit()
+
 
 
 
