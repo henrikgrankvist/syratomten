@@ -483,15 +483,56 @@ if __name__ == "__main__":
 
 
 
-    #print(json.dumps(total_race_result_list, sort_keys=False, indent=4))
-    if DEBUG:
+    if DEBUG: # Verifying the Spreadsheet IDs
         for race in total_race_result_list:
             if "spreadsheet_id" in race:
                 print(race["race"], race["spreadsheet_id"])
 
 
+    final_result_dict = {}
 
+    for race in total_race_result_list: # For each race. This just extracts the spreadsheet_id
+        for race_class in classes: # For each race_class within the race
+            individual_race_result = Google.get(spreadsheet_id=race["spreadsheet_id"], sheet_name=race_class)
+            print(f'Opened spreadsheet {race["spreadsheet_id"]} for {race["race"]}')
 
+            for values in individual_race_result:
+                if race_class not in final_result_dict: # If the class doesn't exist in the dictionary, create the class
+                    final_result_dict[race_class] = {}
+
+                if values[5] != None: # Dont save the result if they dont have a score
+                    if values[1] not in final_result_dict[race_class]: # if the participant doesn't exists
+                        final_result_dict[race_class][values[1]] = {races: values[5]}
+                    else:
+                        final_result_dict[race_class][values[1]][races] = values[5]
+
+    final_spreadsheet_id = Google.create_spreadsheet("Syratomten Total Poängställning", sheet_titles_list)
+    print(f'Created spreadsheet Syratomten Total Poängställning')
+
+    """
+    final_result_dict = {}
+
+    for races in workbooks_created:
+
+        # Load the individual race score workbook
+        race_workbook = load_workbook(filename=races)
+        print("INFO: Opened workbook " + races)
+
+        # For each class in the race
+        for race_class in workbook_sheets:
+
+            # Append the workbook values to a dictionary
+            for values in race_workbook[race_class].iter_rows(min_row=2, values_only=True):
+
+                if race_class not in final_result_dict: # If the class doesn't exist in the dictionary, create the class
+                    final_result_dict[race_class] = {}
+
+                if values[5] != None: # Dont save the result if they dont have a score
+                    if values[1] not in final_result_dict[race_class]: # if the participant doesn't exists
+                        final_result_dict[race_class][values[1]] = {races: values[5]}
+                    else:
+                        final_result_dict[race_class][values[1]][races] = values[5]
+    """
 
 
 
