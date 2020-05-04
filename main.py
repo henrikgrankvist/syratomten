@@ -5,9 +5,6 @@ Participants needs unique names
 DEBUG = True
 
 
-from openpyxl import load_workbook
-from openpyxl import Workbook
-from openpyxl.styles import Alignment
 import datetime
 import sys
 import json
@@ -15,371 +12,96 @@ import copy
 
 from module.googleapi import Google
 
-NAME = 0
-KLASS = 1
-KLUBB = 2
 
-dt = 3
-workbook_sheets = ["Herr", "Dam", "Herr U23", "Dam U23"] # Optional improvement is to read the classes from the init workbook
-workbooks_created = []
-race_name = "Syratomten"
-final_results_workbook_name = race_name + " Total Poängställning.xlsx"
-
-google_sheet = {
-        "spreadsheetId": "1bZAB1gelK82fzusrxsaYxEg2mntBaga6ds62nD8Eu1I",
-        "sheetName": "Test",
-        "range": "!A2:M"
-}
+#NAME = 0
+#KLASS = 1
+#KLUBB = 2
+#dt = 3
 
 
-column_dict1 = {
-    0 : "A",
-    1 : "B",
-    2 : "C",
-    3 : "D",
-    4 : "E",
-    5 : "F",
-    6 : "G",
-    7 : "H",
-    8 : "I",
-    9 : "J",
-    10 : "K",
-    11 : "L",
-    12 : "M"
-}
+#workbook_sheets = ["Herr", "Dam", "Herr U23", "Dam U23"] # Optional improvement is to read the classes from the init workbook
+#workbooks_created = []
+#race_name = "Syratomten"
+#final_results_workbook_name = race_name + " Total Poängställning.xlsx"
 
-# This dictionary is translating the names of the races to a specific column in the final wourkbook.
-column_dict = {
-    "Syratomten Deltävling 1.xlsx" : "C",
-    "Syratomten Deltävling 2.xlsx" : "D",
-    "Syratomten Deltävling 3.xlsx" : "E",
-    "Syratomten Deltävling 4.xlsx" : "F",
-    "Syratomten Deltävling 5.xlsx" : "G",
-    "Syratomten Deltävling 6.xlsx" : "H",
-    "Syratomten Deltävling 7.xlsx" : "I",
-    "Syratomten Deltävling 8.xlsx" : "J",
-    "Syratomten Deltävling 9.xlsx" : "K",
-    "Syratomten Deltävling Final.xlsx" : "L"
-}
+race_headings_list = [["Placering", "Namn", "Klubb" ,"Tid", "Hastighet (km/h)", "Poäng"]]
+final_headings_list = [["Placering", "Namn", "DT1", "DT2", "DT3", "DT4", "DT5", "DT6", "DT7", "DT8", "DT9", "F", "Totalt"]]
+races_list = ['Deltävling 1', 'Deltävling 2', 'Deltävling 3', 'Deltävling 4', 'Deltävling 5', 'Deltävling 6', 'Deltävling 7', 'Deltävling 8', 'Deltävling 9', 'Final']
+classes = ["Herr", "Dam"]
 
-
-"""
-Functions
-"""
-
-def scoreboard(name, klass, klubb, tid, number_of_participants, position):
-
-    points = 5 + number_of_participants - position
-
-    if tid != None: # If the tid is None, they have not raced
-        pos1 = position + 1
-        pos2 = str(position + 2)
-
-
-        score_workbook[klass]["A" + pos2] = pos1
-        score_workbook[klass]["A" + pos2].alignment = Alignment(horizontal='left')
-        score_workbook[klass]["B" + pos2] = name # Name
-
-        if klubb != None: # Dont write "None" as the club
-            score_workbook[klass]["C" + pos2] = klubb # Klubb
-
-
-        min2hrs = int(datetime.datetime.strptime(tid, "%M:%S").strftime("%M"))/60
-        sec2hrs = int(datetime.datetime.strptime(tid, "%M:%S").strftime("%S"))/3600
-        speed = 19.5 / (min2hrs + sec2hrs)
-
-        score_workbook[klass]["D" + pos2] = tid  # Tid
-        score_workbook[klass]["E" + pos2] = "{:.1f}".format(speed) # speed
-
-
-        if klubb == "Väsby SS Triathlon": # Only Väsby Triathlon members gets a score
-            score_workbook[klass]["F" + pos2] = points      # points
-            score_workbook[klass]["F" + pos2].alignment = Alignment(horizontal='left')
-
-        return pos1
-    else: # If tid was none, dont increase the position
-        return position
-
-def fill_final_results():
-
-    # Load the final score workbook
-    final_workbook = load_workbook(filename=final_results_workbook_name)
-
-    final_result_dict = {}
-
-    for races in workbooks_created:
-
-        # Load the individual race score workbook
-        race_workbook = load_workbook(filename=races)
-        print("INFO: Opened workbook " + races)
-
-        # For each class in the race
-        for race_class in workbook_sheets:
-
-            # Append the workbook values to a dictionary
-            for values in race_workbook[race_class].iter_rows(min_row=2, values_only=True):
-
-                if race_class not in final_result_dict: # If the class doesn't exist in the dictionary, create the class
-                    final_result_dict[race_class] = {}
-
-                if values[5] != None: # Dont save the result if they dont have a score
-                    if values[1] not in final_result_dict[race_class]: # if the participant doesn't exists
-                        final_result_dict[race_class][values[1]] = {races: values[5]}
-                    else:
-                        final_result_dict[race_class][values[1]][races] = values[5]
-
-
-
-    """
-    This loop print the results saved in the dictionary to the final excel workbook.
-    The results won't be sorted. That is fixed later.
-    """
-    for klass in final_result_dict:
-        for row, name in enumerate(final_result_dict[klass], 2):
-            total_points = 0
-            for race in final_result_dict[klass][name]:
-
-                # The dict translates the race name to a specific column
-                column = column_dict[race]
-
-                final_workbook[klass]["A" + str(row)].alignment = Alignment(horizontal='left') # Align the position
-
-                final_workbook[klass]["B" + str(row)] = name
-
-                final_workbook[klass][column + str(row)] = final_result_dict[klass][name][race] # The race score for each race
-                final_workbook[klass][column + str(row)].alignment = Alignment(horizontal='center') # Align the race score
-
-                total_points += final_result_dict[klass][name][race]
-
-                #final_workbook[klass][column + str(row)].alignment = Alignment(horizontal='center')
-
-            final_workbook[klass]["M" + str(row)] = total_points
-            final_workbook[klass]["M" + str(row)].alignment = Alignment(horizontal='left')
-
-
-    # Save the final_workbook after all the results are saved
-    final_workbook.save(filename=final_results_workbook_name)
-    print("INFO: The workbook " + final_results_workbook_name + " was saved.")
-
-
-
-
-
-def sort_individual_race(elem):
-    if elem[dt]: # If the values is not None, return that value
-        return elem[dt]
-    else: # If the value is None return "00:00" instead. Otherwise the sort() function will try to sort None, which doesn't work
-        return "00:00"
 
 def new_sort_individual_race(elem):
-    if elem[2]: # If the values is not None, return that value
-        return elem[2]
-    else: # If the value is None return "00:00" instead. Otherwise the sort() function will try to sort None, which doesn't work
-        return "00:00"
+    return elem[2]
 
-def sort_final_score(elem):
-    return elem[12]
 
-def create_race_workbook(workbook_name):
+def new_sort_final_score(elem):
+    return elem[11]
 
-    # Create a workbook for each race
-    workbook = Workbook()
-    workbook.save(filename=race_name + " " + workbook_name + ".xlsx")
-    print("INFO: Workbook " + race_name + " " + workbook_name + ".xlsx was created.")
-
-    # Save the name of the workbooks created so I can open them later for the final results
-    workbooks_created.append(race_name + " "  + workbook_name + ".xlsx")
-
-    score_workbook = load_workbook(filename=race_name + " "  + workbook_name + ".xlsx")
-
-    # Populate the workbook with the sheets listed in the list "workbook_sheets"
-    for sheet in workbook_sheets:
-        if sheet not in workbook.sheetnames:
-            workbook.create_sheet(sheet)
-
-            workbook[sheet]["A1"] = "Placering"
-            workbook[sheet]["B1"] = "Namn"
-            workbook[sheet]["C1"] = "Klubb"
-            workbook[sheet]["D1"] = "Tid"
-            workbook[sheet]["E1"] = "Hastighet (km/h)"
-            workbook[sheet]["F1"] = "Poäng"
-
-            # Setting column width in the workbook sheets
-            workbook[sheet].column_dimensions["A"].width = 9
-            workbook[sheet].column_dimensions["B"].width = 20
-            workbook[sheet].column_dimensions["C"].width = 20
-            workbook[sheet].column_dimensions["D"].width = 9
-            workbook[sheet].column_dimensions["E"].width = 16
-            workbook[sheet].column_dimensions["F"].width = 9
-
-            print("INFO: Sheet " + sheet + " created in workbook " + str(workbook_name))
-
-    # Remove the sheet named "Sheet", which is created by default.
-    if "Sheet" in score_workbook.sheetnames:
-        workbook.remove(workbook["Sheet"])
-
-    return workbook
-
-def create_final_results_workbook():
-
-    # Create the workbook
-    workbook = Workbook()
-
-    workbook.save(filename=final_results_workbook_name)
-    print("INFO: Workbook " + final_results_workbook_name + " was created.")
-
-    score_workbook = load_workbook(filename=final_results_workbook_name)
-
-    # Populate the workbook with the sheets listed in the list "workbook_sheets"
-    for sheet in workbook_sheets:
-        if sheet not in workbook.sheetnames:
-            workbook.create_sheet(sheet)
-
-            workbook[sheet]["A1"] = "Placering"
-            workbook[sheet]["B1"] = "Namn"
-            workbook[sheet]["C1"] = "DT1"
-            workbook[sheet]["D1"] = "DT2"
-            workbook[sheet]["E1"] = "DT3"
-            workbook[sheet]["F1"] = "DT4"
-            workbook[sheet]["G1"] = "DT5"
-            workbook[sheet]["H1"] = "DT6"
-            workbook[sheet]["I1"] = "DT7"
-            workbook[sheet]["J1"] = "DT8"
-            workbook[sheet]["K1"] = "DT9"
-            workbook[sheet]["L1"] = "F"
-            workbook[sheet]["M1"] = "Totalt"
-
-            # Setting the column width
-            workbook[sheet].column_dimensions["A"].width = 9
-            workbook[sheet].column_dimensions["B"].width = 20
-            workbook[sheet].column_dimensions["C"].width = 4
-            workbook[sheet].column_dimensions["D"].width = 4
-            workbook[sheet].column_dimensions["E"].width = 4
-            workbook[sheet].column_dimensions["F"].width = 4
-            workbook[sheet].column_dimensions["G"].width = 4
-            workbook[sheet].column_dimensions["H"].width = 4
-            workbook[sheet].column_dimensions["I"].width = 4
-            workbook[sheet].column_dimensions["J"].width = 4
-            workbook[sheet].column_dimensions["K"].width = 4
-            workbook[sheet].column_dimensions["L"].width = 4
-            workbook[sheet].column_dimensions["M"].width = 6
-
-            print("INFO: Sheet " + sheet + " created in " + final_results_workbook_name)
-
-    # Remove the sheet named "Sheet", which is created by default.
-    if "Sheet" in score_workbook.sheetnames:
-        workbook.remove(workbook["Sheet"])
-
-    workbook.save(filename=final_results_workbook_name)
-    print ("INFO: Workbook " + final_results_workbook_name + " was saved")
-
-def sort_final_results():
-    # Load the workbook that includes all the race results
-    real_final_workbook = load_workbook(filename=final_results_workbook_name)
-    print("INFO: Opened " + final_results_workbook_name + " to sort it.")
-
-    for sheet in workbook_sheets:
-
-        # Append all the values in the initial workbook to a list. It is easyier to work with
-        final_results_list = []
-        for values in real_final_workbook[sheet].iter_rows(min_row=2, values_only=True):
-            final_results_list.append(values)
-
-        # For each race in the workbook
-        for race in real_final_workbook[sheet].iter_rows(min_row=1, max_row=1, min_col=4, values_only=True):
-
-            for workbooks in race:
-
-                # Sort the result_list based on the times
-                try:
-                    final_results_list.sort(key=sort_final_score, reverse = True)
-
-                except TypeError:
-                    print("WARNING: DID NOT SORT " + str(workbooks))
-
-        for position,stuff in enumerate(final_results_list,1): #enumerate starts at 1
-            for idx, items in enumerate(stuff):
-                column = column_dict1[idx]
-                real_final_workbook[sheet][str(column) + str(position+1)] = items
-                real_final_workbook[sheet]["A" + str(position+1)] = position
-
-    real_final_workbook.save(filename=final_results_workbook_name)
-    print("INFO: The workbook " + final_results_workbook_name + " was saved.")
 
 def calculate_speed(time):
     min2hrs = int(datetime.datetime.strptime(time, "%M:%S").strftime("%M"))/60
     sec2hrs = int(datetime.datetime.strptime(time, "%M:%S").strftime("%S"))/3600
-    return 19.5 / (min2hrs + sec2hrs)
+    speed = 19.5 / (min2hrs + sec2hrs)
+    return speed
+
+def calulcate_score(participants, position)
+    score =  5 + participants - position
+    return score
+
+
 
 def make_list_certian_length(list, length):
+    """
+    Makes a list within a list a certain length.
+    """
     for column in list:
         while len(column) <= length:
           column.append("")
 
+"""def make_list_certian_length2(the_list, length):
+    
+    #Makes a list a certian length.
+    
+    while len(the_list) <= length:
+        the_list.append("")"""
+
 if __name__ == "__main__":
 
+    if len(sys.argv) == 2:
+        spreadsheet_var = sys.argv[1].lower()
+    else:
+        print("Invalid number of argument, Enter test or the year")
+        print("Example: python " + sys.argv[0].lower() + " test")
+        exit(1)
 
-    # Load the workbook that includes all the race results
-    init_workbook = load_workbook(filename="st-test2.xlsx")
+    if spreadsheet_var == "test":
 
-    #main_workbook = Google.get(google_sheet["spreadsheetId"], google_sheet["sheetName"], google_sheet["range"])
-    #races = main_workbook[0][3:] # Saves the race names based on the heading in the spreadsheet.
-    races = ['Deltävling 1', 'Deltävling 2', 'Deltävling 3', 'Deltävling 4', 'Deltävling 5', 'Deltävling 6', 'Deltävling 7', 'Deltävling 8', 'Deltävling 9', 'Final']
-    classes = ["Herr", "Dam"]
+        google_sheet = {
+            "spreadsheetId": "1a4_U99Dnk3i1HxMltCJXqkVPRabUnz_RI_85O5GYxL8",
+            "range": "!A2:M",
+            "sheetName": "Test"
+        }
+    elif spreadsheet_var == "2020":
 
-    """
-    ##############################################
-    """
+        google_sheet = {
+            "spreadsheetId": "1a4_U99Dnk3i1HxMltCJXqkVPRabUnz_RI_85O5GYxL8",
+            "range": "!A2:M",
+            "sheetName": "2020"
+        }
+    else:
+        print("No valid arguments entered. Exiting...")
+        exit(1)
+
+
     main_workbook = Google.get(google_sheet["spreadsheetId"], google_sheet["sheetName"], "!A2:M")
+    print("Opened the main score spreadsheet.")
 
-
-    """
-    translate_idx_to_race = {
-        3 : "Deltävling 1",
-        4 : "Deltävling 2",
-        5 : "Deltävling 3",
-        6 : "Deltävling 4",
-        7 : "Deltävling 5",
-        8 : "Deltävling 6",
-        9 : "Deltävling 7",
-        10 : "Deltävling 8",
-        11 : "Deltävling 9",
-        12 : "Final",
-    }
-    """
-
-    """
-    Only cells that have data are returned. This breaks the script, so the script
-    starts with filling blank cells up to column 12.
-    """
     for participant in main_workbook:
         while len(participant) <= 12:
             participant.append("")
 
-
-    """
-    Takes the main_workbook which is a array and rebuilds it to an dictionary
-    with the data more structured. Like this:
-    {
-        "race": "Deltävling 1"
-        "participants" [
-            {
-                "name": "Henrik Grankvist",
-                "class": "Herr",
-                "club": "Väsby SS Triathlon",
-                "result": 29:00
-            },
-            {
-                "name": "Pontus Bohlin",
-                "class": "Herr",
-                "club": "Väsby SS Triathlon",
-                "result": 29:40
-            }
-        ]
-    }
-    """
     total_race_result_list =  []
-    for idx,race in enumerate(races):
+    for idx,race in enumerate(races_list):
         race_result_dict = {} # Without clearing the dictionary the data will be overwritten in the total_race_result_list
         race_result_dict["race"] = race
         race_result_dict["participants"] = []
@@ -398,12 +120,9 @@ if __name__ == "__main__":
 
         total_race_result_list.append(race_result_dict)
 
-
-    #print(json.dumps(total_race_result_list, sort_keys=False, indent=4))
     """
-    To update a google spreadsheet the data needs to be a array.
-    Each user and its result has its own list. The list is cleared between each
-    race.
+    To update a google spreadsheet the data needs to be a array (list within a list).
+    Each user and its result has its own list. The list is cleared between each race.
     """
     sheet_titles_list = [] # The sheet titles are sent as a list in the Google API
 
@@ -428,7 +147,6 @@ if __name__ == "__main__":
 
 
         for participant in race["participants"]:
-            #print(participant["name"], participant["result"])
             update_user_list = []
             update_user_list.append(participant["name"])
             update_user_list.append(participant["club"])
@@ -445,14 +163,12 @@ if __name__ == "__main__":
                 dam_number_of_participants += 1
 
 
-        if DEBUG: print(f"""Number of participants in {race['race']}:
-        Herr: {herr_number_of_participants}
-        Dam: {dam_number_of_participants}""")
+        if DEBUG: print(f"Number of participants in {race['race']}: Herr: {herr_number_of_participants}, Dam: {dam_number_of_participants}")
 
         if herr_number_of_participants == 0 and dam_number_of_participants == 0:
             continue # If there are not participants in the race, continue to the next race.
 
-        race_spreadsheet = Google.create_spreadsheet("Poängräkning " + race["race"], sheet_titles_list)
+        race_spreadsheet = Google.create_spreadsheet('Poängräkning Syratomten ' + race["race"] + ' ' + spreadsheet_var, sheet_titles_list)
         print(f'Created spreadsheet for {race["race"]}')
 
         race["spreadsheet_id"] = race_spreadsheet
@@ -468,236 +184,114 @@ if __name__ == "__main__":
         for participant in herr_race_list:
             participant.insert(0, position_herr+1)
             if "Väsby SS Triathlon" in participant: # Lazy search for Väsby SS Traithlon as the club. Only members of Väsby SS Traithlon get points
-                participant.append(5 + herr_number_of_participants - position_herr)
+                score = calulcate_score(herr_number_of_participants, position_herr)
+                participant.append(score)
             position_herr +=1
 
         for participant in dam_race_list:
             participant.insert(0, position_dam+1)
             if "Väsby SS Triathlon" in participant: # Lazy search for Väsby SS Traithlon as the club. Only members of Väsby SS Traithlon get points
-                participant.append(5 + dam_number_of_participants - position_dam)
+                score = calulcate_score(dam_number_of_participants, position_dam)
+                participant.append(score)
             position_dam +=1
 
 
-
+        # Update the race spreadsheets with the results
         for race_class in classes:
+            google_data = []
             if race_class == "Herr":
-                Google.update(race_spreadsheet, race_class, google_sheet["range"], herr_race_list)
-                print(f"Saved spreadsheet {race_spreadsheet} for class {race_class}")
+                #Google.update(race_spreadsheet, race_class, "!A1:M", race_headings_list)
+                #herr_race_list += race_headings_list
+                google_data = race_headings_list + herr_race_list
+                Google.update(race_spreadsheet, race_class, "!A1:M", google_data)
+                print(f"Updated spreadsheet {race['race']} ({race_spreadsheet}) for class {race_class} with the score")
             elif race_class == "Dam":
-                Google.update(race_spreadsheet, race_class, google_sheet["range"], dam_race_list)
-                print(f"Saved spreadsheet {race_spreadsheet} for class {race_class}")
+                google_data = race_headings_list + dam_race_list
+                #Google.update(race_spreadsheet, race_class, "!A1:M", race_headings_list)
+                #dam_race_list += race_headings_list
+                Google.update(race_spreadsheet, race_class, "!A1:M", google_data)
+                print(f"Updated spreadsheet {race['race']} ({race_spreadsheet}) for class {race_class} with the score")
 
-
-
-
-    if DEBUG: # Verifying the Spreadsheet IDs
-        for race in total_race_result_list:
-            if "spreadsheet_id" in race:
-                print(race["race"], race["spreadsheet_id"])
-
+    print("Opening each race spreadsheet and saving all the results in a dictionary.")
 
     final_result_dict = {}
-
-    for race in total_race_result_list: # For each race. This just extracts the spreadsheet_id
-        print(f'Current race: {race["race"]}')
+    # Open each race score spreadsheet for each race and read the score of each participant
+    for race in total_race_result_list: # For each race. (This just extracts the spreadsheet_id)
+        #print(f'Opening spreadhseet for {race["race"]} and saving it')
         for race_class in classes: # For each race_class within the race
-            if "spreadsheet_id" in race: #spreadsheet_id only exists if there is a sheet created for this race.
+            if "spreadsheet_id" in race: # spreadsheet_id only exists if there is a sheet created for this race.
                 individual_race_result = Google.get(spreadsheet_id=race["spreadsheet_id"], sheet_name=race_class)
-                print(f'Opened spreadsheet {race["spreadsheet_id"]} for {race["race"]}')
+                print(f'Opened spreadsheet {race["spreadsheet_id"]} for {race["race"]} {race_class  }')
 
+                # The score is missing for the participant if it is a member of Väsby SS Triathlon
                 make_list_certian_length(individual_race_result, 5)
 
                 # participant[1] = namn of participant
-                # participant[5] = athelete's score
+                # participant[5] = participant's score
                 for participant in individual_race_result:
-                    print(f"Current participant: {participant[1]}")
 
                     if race_class not in final_result_dict: # If the class doesn't exist in the dictionary, create the class
                         final_result_dict[race_class] = {}
-                        if DEBUG: print(f"{race_class} created in final_result_dict")
+                        if DEBUG: print(f"Class {race_class} created in final_result_dict")
 
                     if participant[5] != "": # Dont save the result if they dont have a score
-                        if participant[1] not in final_result_dict[race_class]: # if the participant doesn't exists
+                        #print(f'{participant[1]} : {race["race"]} : {participant[5]}')
+                        if participant[1] not in final_result_dict[race_class]: # if the participant doesn't exists in the dictionary already
                             final_result_dict[race_class][participant[1]] = {race["race"]: participant[5]}
                         else:
                             final_result_dict[race_class][participant[1]][race["race"]] = participant[5]
-
-    print(final_result_dict)
-
-    for race_class in final_result_dict:
-        for participant in final_result_dict[race_class]:
-
-            participant_score_list = []
-            for race_name in final_result_dict[race_class][participant]:
-                #if DEBUG: print(f"{final_result_dict[race_class]}:{final_result_dict[race_class][participant]}")
-                for race_score in final_result_dict[race_class][participant][race_name]:
-                    print(final_result_dict[race_class][participant][race_name], race_score)
-                    participant_score_list.append(race_score)
-                #print(f"Appending {race_score} for {participant}")
-
-            print(participant_score_list)
-    exit()
+    
+    
     final_spreadsheet_id = Google.create_spreadsheet("Syratomten Total Poängställning", sheet_titles_list)
-    print(f'Created spreadsheet Syratomten Total Poängställning')
-
-
-
-    """
-    for klass in final_result_dict:
-        for row, name in enumerate(final_result_dict[klass], 2):
-            total_points = 0
-            for race in final_result_dict[klass][name]:
-
-                # The dict translates the race name to a specific column
-                column = column_dict[race]
-
-                final_workbook[klass]["A" + str(row)].alignment = Alignment(horizontal='left') # Align the position
-
-                final_workbook[klass]["B" + str(row)] = name
-
-                final_workbook[klass][column + str(row)] = final_result_dict[klass][name][race] # The race score for each race
-                final_workbook[klass][column + str(row)].alignment = Alignment(horizontal='center') # Align the race score
-
-                total_points += final_result_dict[klass][name][race]
-
-                #final_workbook[klass][column + str(row)].alignment = Alignment(horizontal='center')
-
-            final_workbook[klass]["M" + str(row)] = total_points
-            final_workbook[klass]["M" + str(row)].alignment = Alignment(horizontal='left')
-    """
-
-
-    ##############################################
-    """
-    exit()
-    #print(race_result_dict)
-    for idx, participant in enumerate(main_workbook):
-        print(str(idx), participant)
-        if idx == 0:
-            continue
-
-        race_result_dict["Deltävling 1"][participant[1]][participant[0]] = participant[3]
-
-    print(json.dumps(race_result_dict, sort_keys=False, indent=4))
-
+    print(f"Created spreadsheet Syratomten Total Poängställning")
+    
+    # Updating the final score spreadsheet with the headings.
+    for race_class in final_result_dict:
+        Google.update(final_spreadsheet_id, race_class, "!A1:M", final_headings_list)
+        print(f"Updated spreadsheet Syratomten Total Poängställning for class {race_class} with the headings")
+    
 
     """
-    ##############################################
+    This for loop opens the final_result_dict where all the participants score's are stored and creates a nested list.
+    The Google API is expecting a nested list. Each nested list is its own row within the spreadsheet.
+    The nested list must be formatted as followed: 
+    ["participants name", "score 1", "score 2", "score 3", "score 4", "score 5", "score 6", "score 7", "score 8", "score 9", "score 10", "total score"]
     """
-    main_workbook = Google.get(google_sheet["spreadsheetId"], google_sheet["sheetName"], google_sheet["range"])
+    for race_class in final_result_dict:
+
+        final_score_list = []
+
+        for participant in final_result_dict[race_class]:
+            participant_total_score = 0
+            participant_score_list = []
+            for race_name in races_list:
+                if race_name in final_result_dict[race_class][participant]:
+                    #print(participant, race_name, final_result_dict[race_class][participant][race_name])
+                    participant_score_list.append(int(final_result_dict[race_class][participant][race_name])) # Adds participant's score to the list as an integer. Otherwise it will be an string.
+                else:
+                    participant_score_list.append("")
+
+            
+            for points in participant_score_list:
+                if isinstance(points, int): # An empty string was added to the list when the participant has not raced and we can't sum that up.
+                    participant_total_score += points # Sums upp all the participant's scores
+
+            # Adds the participants name first in the list.
+            participant_score_list.insert(0,participant)
+
+            # Fills the gap from the race to the 11th spot in order to add the particiapant's total score on the 12th
+            #make_list_certian_length2(participant_score_list, 11) 
+            
+            # Adds the participant's total score on 12th spot
+            participant_score_list.append(participant_total_score)
+
+            final_score_list.append(participant_score_list)
 
 
+        final_score_list.sort(key=new_sort_final_score, reverse = True)
 
-    exit()
-    for race in races:
-        main_workbook.sort(key=sort_individual_race)
-    race_result_list = []
-    for participant in main_workbook:
-        if participant[3]:
-            #race_result_list.append(participant[0],participant[2],participant[3])
-            print(participant[0],participant[3])
+        for idx, participant in enumerate(final_score_list, 1):
+            participant.insert(0, idx)
 
-    race_spreadsheet = Google.create("Syratomten Deltävling 1")
-    print(race_spreadsheet)
-    Google.update(race_spreadsheet, "Blad1", google_sheet["range"], main_workbook)
-
-    print("\n\n\n")
-    exit()
-
-    # Append all the values in the initial workbook to a list. It is easyier to work with
-    result_list = []
-
-    # The spreadsheet data is read as a tuple
-    for values in init_workbook["Syra Tomten"].iter_rows(min_row=2, values_only=True):
-        result_list.append(values)
-
-    print(result_list)
-    exit()"""
-
-    #Google.create("Syratomten Deltävling 1")
-
-
-    # For each race in the workbook
-    for race in init_workbook["Syra Tomten"].iter_rows(min_row=1, max_row=1, min_col=4, values_only=True): # Reads the different race names in the spreadsheet
-
-        for workbooks in race:
-
-
-            # Sort the result_list based on the times
-            try:
-                result_list.sort(key=sort_individual_race)
-                #print("SORTED " + str(workbooks))
-            except TypeError:
-                print("WARNING: DID NOT SORT " + str(workbooks))
-
-
-
-            number_of_participants_herr = 0
-            number_of_participants_dam = 0
-            number_of_participants_herru23 = 0
-            number_of_participants_damu23 = 0
-
-
-
-            #Count the number of participants in each class in this race.
-            #The number of participant is used for setting the score
-
-            for participant in result_list:
-                if participant[dt] != None: # Only if the time is not None, could probably match anything
-                    if participant[KLASS] == "Herr" or participant[KLASS] == "Herr U23":
-                        number_of_participants_herr = number_of_participants_herr + 1
-                    elif participant[KLASS] == "Dam" or participant[KLASS] == "Dam U23":
-                        number_of_participants_dam = number_of_participants_dam + 1
-
-                    if participant[KLASS] == "Herr U23":
-                        number_of_participants_herru23 = number_of_participants_herru23 + 1
-                    elif participant[KLASS] == "Dam U23":
-                        number_of_participants_damu23 = number_of_participants_damu23 + 1
-
-
-
-            # Reset the participants position
-            position_herr = 0
-            position_dam = 0
-            position_herru23 = 0
-            position_damu23 = 0
-
-
-            # Only continue if there are any participants in the race
-            if number_of_participants_herr != 0 or number_of_participants_dam != 0 or number_of_participants_herru23 != 0 or number_of_participants_damu23 != 0:
-            #if any(number_of_participants_herr, number_of_participants_dam, number_of_participants_herru23, number_of_participants_damu23) != 0:
-
-                # Create a new workbook for this race
-                score_workbook = create_race_workbook(workbooks)
-
-                for stuff in result_list:
-
-                    # Herr U23 is also counted in the Herr class
-                    if stuff[KLASS] == "Herr" or stuff[KLASS] == "Herr U23":
-                        position_herr = scoreboard(stuff[NAME], "Herr", stuff[KLUBB], stuff[dt], number_of_participants_herr, position_herr)
-
-                    # Dam U23 is also counted in the Dam class
-                    elif stuff[KLASS] == "Dam" or stuff[KLASS] == "Dam U23":
-                        position_dam = scoreboard(stuff[NAME], "Dam", stuff[KLUBB], stuff[dt], number_of_participants_dam, position_dam)
-
-                    if stuff[KLASS] == "Herr U23":
-                        position_herru23 = scoreboard(stuff[NAME], stuff[KLASS], stuff[KLUBB], stuff[dt], number_of_participants_herru23, position_herru23)
-
-                    elif stuff[KLASS] == "Dam U23":
-                        position_damu23 = scoreboard(stuff[NAME], stuff[KLASS], stuff[KLUBB], stuff[dt], number_of_participants_damu23, position_damu23)
-
-                # Increase the deltävling by one each loop
-                dt += 1
-
-                # Save the content in the score workbook
-                score_workbook.save(filename=race_name + " "  + workbooks + ".xlsx")
-                print ("INFO: Workbook " + race_name + " "  + workbooks + ".xlsx was saved")
-
-    # Create the final results workbook
-    create_final_results_workbook()
-
-    # Fill the final results workbook
-    fill_final_results()
-
-    # Sort the results in the final results workbook
-    sort_final_results()
+        Google.update(final_spreadsheet_id, race_class, google_sheet["range"], final_score_list)
+        print(f"Updated Syratomten Total Poängställning for class {race_class} with the score information.")
