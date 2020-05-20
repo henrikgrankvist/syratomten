@@ -41,10 +41,10 @@ def new_sort_final_score(elem):
 def calculate_speed(time):
     min2hrs = int(datetime.datetime.strptime(time, "%M:%S").strftime("%M"))/60
     sec2hrs = int(datetime.datetime.strptime(time, "%M:%S").strftime("%S"))/3600
-    speed = 19.5 / (min2hrs + sec2hrs)
+    speed = 19.53 / (min2hrs + sec2hrs)
     return speed
 
-def calulcate_score(participants, position)
+def calulcate_score(participants, position):
     score =  5 + participants - position
     return score
 
@@ -64,6 +64,35 @@ def make_list_certian_length(list, length):
     
     while len(the_list) <= length:
         the_list.append("")"""
+
+def adjust_column_width(race_spreadsheet, column_width_list):
+    
+    sheet_id_list = Google.get_sheetid(race_spreadsheet)
+    
+    requests= {}
+    requests["requests"] = []
+
+    for sheet_id in sheet_id_list:
+        for column_idx, column_width in enumerate(column_width_list):
+            temp_google_data = {}
+            temp_google_data = {
+                "updateDimensionProperties": {
+                "range": {
+                    "sheetId": sheet_id,
+                    "dimension": "COLUMNS",
+                    "startIndex": column_idx,
+                    "endIndex": column_idx+1
+                },
+                "properties": {
+                    "pixelSize": column_width
+                },
+                "fields": "pixelSize"
+                }
+            }
+            requests["requests"].append(temp_google_data)
+
+    return requests
+        
 
 if __name__ == "__main__":
 
@@ -169,9 +198,19 @@ if __name__ == "__main__":
             continue # If there are not participants in the race, continue to the next race.
 
         race_spreadsheet = Google.create_spreadsheet('Poängräkning Syratomten ' + race["race"] + ' ' + spreadsheet_var, sheet_titles_list)
-        print(f'Created spreadsheet for {race["race"]}')
-
         race["spreadsheet_id"] = race_spreadsheet
+        #print(race_spreadsheet)
+        print(f'Created spreadsheet for {race["spreadsheet_id"]}')
+
+        column_width_list = [80,220,220,120,150,100]
+        column_width_data = adjust_column_width(race["spreadsheet_id"], column_width_list)
+        #print(column_width_data)
+        
+        Google.batch_update(race["spreadsheet_id"], column_width_data)
+        print(f"Spreadsheet {race['race']} was updated with correct column width.")
+
+
+        
 
 
         # Sort the lists based on the result
@@ -182,17 +221,17 @@ if __name__ == "__main__":
         position_dam = 0
 
         for participant in herr_race_list:
-            participant.insert(0, position_herr+1)
+            participant.insert(0, str(position_herr+1)) # Adding the position as string so the text will automatically be left aligned.
             if "Väsby SS Triathlon" in participant: # Lazy search for Väsby SS Traithlon as the club. Only members of Väsby SS Traithlon get points
                 score = calulcate_score(herr_number_of_participants, position_herr)
-                participant.append(score)
+                participant.append(str(score)) # Adding the score as string so the text will automatically be left aligned.
             position_herr +=1
 
         for participant in dam_race_list:
-            participant.insert(0, position_dam+1)
+            participant.insert(0, str(position_dam+1)) # Adding the position as string so the text will automatically be left aligned.
             if "Väsby SS Triathlon" in participant: # Lazy search for Väsby SS Traithlon as the club. Only members of Väsby SS Traithlon get points
                 score = calulcate_score(dam_number_of_participants, position_dam)
-                participant.append(score)
+                participant.append(str(score)) # Adding the score as string so the text will automatically be left aligned.
             position_dam +=1
 
 
@@ -200,15 +239,11 @@ if __name__ == "__main__":
         for race_class in classes:
             google_data = []
             if race_class == "Herr":
-                #Google.update(race_spreadsheet, race_class, "!A1:M", race_headings_list)
-                #herr_race_list += race_headings_list
                 google_data = race_headings_list + herr_race_list
                 Google.update(race_spreadsheet, race_class, "!A1:M", google_data)
                 print(f"Updated spreadsheet {race['race']} ({race_spreadsheet}) for class {race_class} with the score")
             elif race_class == "Dam":
                 google_data = race_headings_list + dam_race_list
-                #Google.update(race_spreadsheet, race_class, "!A1:M", race_headings_list)
-                #dam_race_list += race_headings_list
                 Google.update(race_spreadsheet, race_class, "!A1:M", google_data)
                 print(f"Updated spreadsheet {race['race']} ({race_spreadsheet}) for class {race_class} with the score")
 

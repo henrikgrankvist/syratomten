@@ -49,7 +49,6 @@ class Google:
             "sheets": sheet_titles
         }
         spreadsheet = service.spreadsheets().create(body=spreadsheet,fields='spreadsheetId').execute()
-        #print('Spreadsheet ID: {0}'.format(spreadsheet.get('spreadsheetId')))
         return spreadsheet.get('spreadsheetId')
 
     def get(spreadsheet_id=None, sheet_name=None, sheet_range='!A2:I'):
@@ -61,8 +60,30 @@ class Google:
         # Call the Sheets API
         sheet = service.spreadsheets()
         result = sheet.values().get(spreadsheetId=spreadsheet_id, range=sheet_name+sheet_range).execute()
-
+ 
         return result.get('values', [])
+
+    def get_sheetid(spreadsheet_id=None):
+        """
+        Returns a list of sheet IDs for a given spreadsheet.
+        The sheet IDs are required to know when you want to do a batch_update.
+        """
+
+        if not spreadsheet_id:
+            return None
+
+        creds = Google.token()
+
+        service = build('sheets', 'v4', credentials=creds)
+
+        result = service.spreadsheets().get(spreadsheetId=spreadsheet_id).execute()
+
+        sheet_id_list = []
+
+        for sheet_properties in result["sheets"]:
+            sheet_id_list.append(sheet_properties["properties"]["sheetId"])
+
+        return sheet_id_list
 
     def update(spreadsheet_id, sheet, range, data):
 
@@ -81,6 +102,22 @@ class Google:
         sheet = service.spreadsheets()
         result = sheet.values().update(spreadsheetId=spreadsheet_id, range=sheet_range, valueInputOption='RAW', body=body).execute()
 
+        return result
+
+    def batch_update(spreadsheet_id=None, data=None):
+
+        #sheet_id=None, column_index=None, pixel_size=100
+
+        if not spreadsheet_id:
+            return None
+
+        creds = Google.token()
+
+        service = build('sheets', 'v4', credentials=creds)
+
+        # Call the Sheets API
+        result = service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=data).execute()
+        
         return result
 
     def append(spreadsheet_id, sheet, range, data):
