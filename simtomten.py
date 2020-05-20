@@ -6,17 +6,21 @@ DEBUG = True
 
 
 import datetime
+from time import strftime
+from time import gmtime
 import sys
 import json
 import copy
 
 from module.googleapi import Google
 
-race_headings_list = [["Placering", "Namn", "Klubb" ,"Tid", "Hastighet (km/h)", "Poäng"]]
-final_headings_list = [["Placering", "Namn", "DT1", "DT2", "DT3", "DT4", "DT5", "DT6", "DT7", "DT8", "DT9", "F", "Totalt"]]
-races_list = ['Deltävling 1', 'Deltävling 2', 'Deltävling 3', 'Deltävling 4', 'Deltävling 5', 'Deltävling 6', 'Deltävling 7', 'Deltävling 8', 'Deltävling 9', 'Final']
+race_name = "Simtomten"
+race_headings_list = [["Placering", "Namn", "Klubb" ,"Tid", "Hastighet (tid/100m)", "Poäng"]]
+final_headings_list = [["Placering", "Namn", "DT1", "DT2", "DT3", "DT4", "DT5", "F", "Totalt"]]
+races_list = ['Deltävling 1', 'Deltävling 2', 'Deltävling 3', 'Deltävling 4', 'Deltävling 5', 'Final']
 classes = ["Herr", "Dam"]
-RACE_LENGTH = 19.53
+RACE_LENGTH = 1500 # 1500 meters
+column_width_list = [80,220,220,120,150,100]
 
 
 def new_sort_individual_race(elem):
@@ -24,13 +28,22 @@ def new_sort_individual_race(elem):
 
 
 def new_sort_final_score(elem):
-    return elem[11]
+    return elem[len(elem)-1]
 
 
 def calculate_speed(time):
-    min2hrs = int(datetime.datetime.strptime(time, "%M:%S").strftime("%M"))/60
-    sec2hrs = int(datetime.datetime.strptime(time, "%M:%S").strftime("%S"))/3600
-    speed = RACE_LENGTH / (min2hrs + sec2hrs)
+    min2sec = int(datetime.datetime.strptime(time, "%M:%S").strftime("%M"))*60 # Converts minutes to seconds
+    sec = int(datetime.datetime.strptime(time, "%M:%S").strftime("%S"))
+
+    number_of_hundreds = RACE_LENGTH / 100
+
+    speed_in_seconds = (min2sec + sec) / number_of_hundreds
+
+    speed = strftime("%M:%S", gmtime(speed_in_seconds)) # Converts seconds to minutes and seconds
+
+    if speed[0] == "0": # exclude the first 0 in the speed, if there is one.
+        return speed[1:]
+
     return speed
 
 def calulcate_score(participants, position):
@@ -46,13 +59,6 @@ def make_list_certian_length(list, length):
     for column in list:
         while len(column) <= length:
           column.append("")
-
-"""def make_list_certian_length2(the_list, length):
-    
-    #Makes a list a certian length.
-    
-    while len(the_list) <= length:
-        the_list.append("")"""
 
 def adjust_column_width(race_spreadsheet, column_width_list):
     
@@ -95,14 +101,14 @@ if __name__ == "__main__":
     if spreadsheet_var == "test":
 
         google_sheet = {
-            "spreadsheetId": "1a4_U99Dnk3i1HxMltCJXqkVPRabUnz_RI_85O5GYxL8",
+            "spreadsheetId": "1qLKWsnyhOSSAnsZ0lY0NLyen1m53kLOd_RDWa26OqLI",
             "range": "!A2:M",
             "sheetName": "Test"
         }
     elif spreadsheet_var == "2020":
 
         google_sheet = {
-            "spreadsheetId": "1a4_U99Dnk3i1HxMltCJXqkVPRabUnz_RI_85O5GYxL8",
+            "spreadsheetId": "1qLKWsnyhOSSAnsZ0lY0NLyen1m53kLOd_RDWa26OqLI",
             "range": "!A2:M",
             "sheetName": "2020"
         }
@@ -171,7 +177,7 @@ if __name__ == "__main__":
             update_user_list.append(participant["result"])
 
             speed = calculate_speed(participant["result"])
-            update_user_list.append("{:.1f}".format(speed))
+            update_user_list.append(speed)
 
             if participant["class"] == "Herr":
                 herr_race_list.append(update_user_list)
@@ -186,12 +192,12 @@ if __name__ == "__main__":
         if herr_number_of_participants == 0 and dam_number_of_participants == 0:
             continue # If there are not participants in the race, continue to the next race.
 
-        race_spreadsheet = Google.create_spreadsheet('Poängräkning Syratomten ' + race["race"] + ' ' + spreadsheet_var, sheet_titles_list)
+        race_spreadsheet = Google.create_spreadsheet('Poängräkning ' + race_name + ' ' + race["race"] + ' ' + spreadsheet_var, sheet_titles_list)
         race["spreadsheet_id"] = race_spreadsheet
         #print(race_spreadsheet)
         print(f'Created spreadsheet for {race["spreadsheet_id"]}')
 
-        column_width_list = [80,220,220,120,150,100]
+        
         column_width_data = adjust_column_width(race["spreadsheet_id"], column_width_list)
         #print(column_width_data)
         
@@ -266,13 +272,13 @@ if __name__ == "__main__":
                             final_result_dict[race_class][participant[1]][race["race"]] = participant[5]
     
     
-    final_spreadsheet_id = Google.create_spreadsheet("Syratomten Total Poängställning", sheet_titles_list)
-    print(f"Created spreadsheet Syratomten Total Poängställning")
+    final_spreadsheet_id = Google.create_spreadsheet(race_name + " Total Poängställning", sheet_titles_list)
+    print(f"Created spreadsheet " + race_name + " Total Poängställning")
     
     # Updating the final score spreadsheet with the headings.
     for race_class in final_result_dict:
         Google.update(final_spreadsheet_id, race_class, "!A1:M", final_headings_list)
-        print(f"Updated spreadsheet Syratomten Total Poängställning for class {race_class} with the headings")
+        print(f"Updated spreadsheet " + race_name + " Total Poängställning for class {race_class} with the headings")
     
 
     """
@@ -318,4 +324,4 @@ if __name__ == "__main__":
             participant.insert(0, idx)
 
         Google.update(final_spreadsheet_id, race_class, google_sheet["range"], final_score_list)
-        print(f"Updated Syratomten Total Poängställning for class {race_class} with the score information.")
+        print(f"Updated " + race_name + " Total Poängställning for class {race_class} with the score information.")
