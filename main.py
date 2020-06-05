@@ -2,9 +2,6 @@
 Participants needs unique names
 """
 
-DEBUG = True
-
-
 import datetime
 import sys
 import json
@@ -16,7 +13,9 @@ race_headings_list = [["Placering", "Namn", "Klubb" ,"Tid", "Hastighet (km/h)", 
 final_headings_list = [["Placering", "Namn", "DT1", "DT2", "DT3", "DT4", "DT5", "DT6", "DT7", "DT8", "DT9", "F", "Totalt"]]
 races_list = ['Deltävling 1', 'Deltävling 2', 'Deltävling 3', 'Deltävling 4', 'Deltävling 5', 'Deltävling 6', 'Deltävling 7', 'Deltävling 8', 'Deltävling 9', 'Final']
 classes = ["Herr", "Dam"]
-RACE_LENGTH = 19.53
+RACE_LENGTH = 19.53 # race length in kilometers
+race_column_width_list = [80,220,220,120,150,100]
+final_column_width_list = [83,200,40,40,40,40,40,40,40,40,40,40,53]
 
 
 def new_sort_individual_race(elem):
@@ -27,7 +26,7 @@ def new_sort_final_score(elem):
     return elem[11]
 
 
-def calculate_speed(time):
+def calculate_speed(time): # Time needs to be in HH:MM format
     min2hrs = int(datetime.datetime.strptime(time, "%M:%S").strftime("%M"))/60
     sec2hrs = int(datetime.datetime.strptime(time, "%M:%S").strftime("%S"))/3600
     speed = RACE_LENGTH / (min2hrs + sec2hrs)
@@ -55,6 +54,10 @@ def make_list_certian_length(list, length):
         the_list.append("")"""
 
 def adjust_column_width(race_spreadsheet, column_width_list):
+    """
+    Takes the spreadsheet_id and a list with all column width
+    and prepares the request for updating the column width in a sheet.
+    """
     
     sheet_id_list = Google.get_sheetid(race_spreadsheet)
     
@@ -181,25 +184,22 @@ if __name__ == "__main__":
                 dam_number_of_participants += 1
 
 
-        if DEBUG: print(f"Number of participants in {race['race']}: Herr: {herr_number_of_participants}, Dam: {dam_number_of_participants}")
+        print(f"Number of participants in {race['race']}: Herr: {herr_number_of_participants}, Dam: {dam_number_of_participants}")
 
         if herr_number_of_participants == 0 and dam_number_of_participants == 0:
             continue # If there are not participants in the race, continue to the next race.
 
         race_spreadsheet = Google.create_spreadsheet('Poängräkning Syratomten ' + race["race"] + ' ' + spreadsheet_var, sheet_titles_list)
         race["spreadsheet_id"] = race_spreadsheet
-        #print(race_spreadsheet)
+        
         print(f'Created spreadsheet for {race["spreadsheet_id"]}')
 
-        column_width_list = [80,220,220,120,150,100]
-        column_width_data = adjust_column_width(race["spreadsheet_id"], column_width_list)
-        #print(column_width_data)
+        # Prepare the data for changing the sheet column width
+        column_width_data = adjust_column_width(race["spreadsheet_id"], race_column_width_list)
         
+        # Column width is updated with a batch_update
         Google.batch_update(race["spreadsheet_id"], column_width_data)
-        print(f"Spreadsheet {race['race']} was updated with correct column width.")
-
-
-        
+        print(f"Updated {race['race']} with correct column width.")
 
 
         # Sort the lists based on the result
@@ -241,22 +241,22 @@ if __name__ == "__main__":
     final_result_dict = {}
     # Open each race score spreadsheet for each race and read the score of each participant
     for race in total_race_result_list: # For each race. (This just extracts the spreadsheet_id)
-        #print(f'Opening spreadhseet for {race["race"]} and saving it')
+        
         for race_class in classes: # For each race_class within the race
+
             if "spreadsheet_id" in race: # spreadsheet_id only exists if there is a sheet created for this race.
                 individual_race_result = Google.get(spreadsheet_id=race["spreadsheet_id"], sheet_name=race_class)
-                print(f'Opened spreadsheet {race["spreadsheet_id"]} for {race["race"]} {race_class  }')
+                print(f'Opened spreadsheet {race["spreadsheet_id"]} for {race["race"]} {race_class}')
 
                 # The score is missing for the participant if it is a member of Väsby SS Triathlon
                 make_list_certian_length(individual_race_result, 5)
 
-                # participant[1] = namn of participant
+                # participant[1] = name of participant
                 # participant[5] = participant's score
                 for participant in individual_race_result:
 
                     if race_class not in final_result_dict: # If the class doesn't exist in the dictionary, create the class
                         final_result_dict[race_class] = {}
-                        if DEBUG: print(f"Class {race_class} created in final_result_dict")
 
                     if participant[5] != "": # Dont save the result if they dont have a score
                         #print(f'{participant[1]} : {race["race"]} : {participant[5]}')
@@ -273,6 +273,13 @@ if __name__ == "__main__":
     for race_class in final_result_dict:
         Google.update(final_spreadsheet_id, race_class, "!A1:M", final_headings_list)
         print(f"Updated spreadsheet Syratomten Total Poängställning for class {race_class} with the headings")
+
+    # Prepare the data for changing the sheet column width
+    column_width_data = adjust_column_width(final_spreadsheet_id, final_column_width_list)
+    
+    # Column width is updated with a batch_update
+    Google.batch_update(final_spreadsheet_id, column_width_data)
+    print(f"Updated Syratomten Total Poängställning with correct column width.")
     
 
     """
