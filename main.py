@@ -6,6 +6,7 @@ import datetime
 import sys
 import json
 import copy
+import time
 
 from module.googleapi import Google
 
@@ -32,11 +33,20 @@ def calculate_speed(time): # Time needs to be in HH:MM format
     speed = RACE_LENGTH / (min2hrs + sec2hrs)
     return speed
 
-def calulcate_score(participants, position):
-    score =  5 + participants - position
-    return score
+def calculcate_score(participants, position):
+    return 5 + participants - position
 
+def calculcate_score2(participants, position):
 
+    if position+1 == 1:
+        extra = 5
+    elif position+1 == 2:
+        extra = 3
+    elif position+1 == 3:
+        extra = 1
+    else:
+        extra = 0
+    return 5 + participants - position + extra
 
 def make_list_certian_length(list, length):
     """
@@ -156,6 +166,7 @@ if __name__ == "__main__":
 
 
     for race in total_race_result_list:
+        time.sleep(10)
 
         #race_spreadsheet = Google.create_spreadsheet(race["race"], sheet_titles_list)
         #print(f'Created spreadsheet for {race["race"]}')
@@ -212,14 +223,14 @@ if __name__ == "__main__":
         for participant in herr_race_list:
             participant.insert(0, str(position_herr+1)) # Adding the position as string so the text will automatically be left aligned.
             if "Väsby SS Triathlon" in participant: # Lazy search for Väsby SS Traithlon as the club. Only members of Väsby SS Traithlon get points
-                score = calulcate_score(herr_number_of_participants, position_herr)
+                score = calculcate_score(herr_number_of_participants, position_herr)
                 participant.append(str(score)) # Adding the score as string so the text will automatically be left aligned.
             position_herr +=1
 
         for participant in dam_race_list:
             participant.insert(0, str(position_dam+1)) # Adding the position as string so the text will automatically be left aligned.
             if "Väsby SS Triathlon" in participant: # Lazy search for Väsby SS Traithlon as the club. Only members of Väsby SS Traithlon get points
-                score = calulcate_score(dam_number_of_participants, position_dam)
+                score = calculcate_score(dam_number_of_participants, position_dam)
                 participant.append(str(score)) # Adding the score as string so the text will automatically be left aligned.
             position_dam +=1
 
