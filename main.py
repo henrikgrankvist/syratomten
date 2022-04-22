@@ -119,6 +119,20 @@ if __name__ == "__main__":
             "range": "!A2:M",
             "sheetName": "2020"
         }
+    elif spreadsheet_var == "2021":
+
+        google_sheet = {
+            "spreadsheetId": "1a4_U99Dnk3i1HxMltCJXqkVPRabUnz_RI_85O5GYxL8",
+            "range": "!A2:M",
+            "sheetName": "2021"
+        }
+    elif spreadsheet_var == "2022":
+
+        google_sheet = {
+            "spreadsheetId": "1a4_U99Dnk3i1HxMltCJXqkVPRabUnz_RI_85O5GYxL8",
+            "range": "!A2:M",
+            "sheetName": "2022"
+        }
     else:
         print("No valid arguments entered. Exiting...")
         exit(1)
@@ -203,7 +217,7 @@ if __name__ == "__main__":
         race_spreadsheet = Google.create_spreadsheet('Poängräkning Syratomten ' + race["race"] + ' ' + spreadsheet_var, sheet_titles_list)
         race["spreadsheet_id"] = race_spreadsheet
         
-        print(f'Created spreadsheet for {race["spreadsheet_id"]}')
+        print(f"Created spreadsheet for {race['race']}")
 
         # Prepare the data for changing the sheet column width
         column_width_data = adjust_column_width(race["spreadsheet_id"], race_column_width_list)
@@ -241,11 +255,11 @@ if __name__ == "__main__":
             if race_class == "Herr":
                 google_data = race_headings_list + herr_race_list
                 Google.update(race_spreadsheet, race_class, "!A1:M", google_data)
-                print(f"Updated spreadsheet {race['race']} ({race_spreadsheet}) for class {race_class} with the score")
+                print(f"Updated spreadsheet {race['race']} for class {race_class} with the score")
             elif race_class == "Dam":
                 google_data = race_headings_list + dam_race_list
                 Google.update(race_spreadsheet, race_class, "!A1:M", google_data)
-                print(f"Updated spreadsheet {race['race']} ({race_spreadsheet}) for class {race_class} with the score")
+                print(f"Updated spreadsheet {race['race']} for class {race_class} with the score")
 
     print("Opening each race spreadsheet and saving all the results in a dictionary.")
 
