@@ -1,2 +1,2 @@
 # Syratomten Cup Result calculation
-WIll try to make it work with the Google API
+Integrates with Google API to create calulcate score for the training race "Syratomten".
