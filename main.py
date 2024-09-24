@@ -140,6 +140,13 @@ if __name__ == "__main__":
             "range": "!A2:M",
             "sheetName": "2023"
         }
+    elif spreadsheet_var == "2024":
+
+        google_sheet = {
+            "spreadsheetId": "1a4_U99Dnk3i1HxMltCJXqkVPRabUnz_RI_85O5GYxL8",
+            "range": "!A2:M",
+            "sheetName": "2024"
+        }
     else:
         print("No valid arguments entered. Exiting...")
         exit(1)

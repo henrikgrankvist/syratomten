@@ -1,6 +1,11 @@
 # Google API
 import pickle
 import os.path
+import webbrowser    
+urL='https://www.google.com'
+chrome_path= "C:\Program Files\Google\Chrome\Application\chrome.exe %s"
+webbrowser.register('chrome', None,webbrowser.BackgroundBrowser(chrome_path))
+webbrowser.get('chrome').open_new_tab(urL)
 
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
