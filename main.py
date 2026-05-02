@@ -7,6 +7,9 @@ import sys
 import json
 import copy
 import time
+from datetime import datetime
+
+import googleapiclient
 
 from module.googleapi import Google
 
@@ -17,6 +20,7 @@ classes = ["Herr", "Dam"]
 RACE_LENGTH = 19.53 # race length in kilometers
 race_column_width_list = [80,220,220,120,150,100]
 final_column_width_list = [83,200,40,40,40,40,40,40,40,40,40,40,53]
+SPREADSHEET_ID = "1a4_U99Dnk3i1HxMltCJXqkVPRabUnz_RI_85O5GYxL8"
 
 
 def new_sort_individual_race(elem):
@@ -101,58 +105,73 @@ if __name__ == "__main__":
     if len(sys.argv) == 2:
         spreadsheet_var = sys.argv[1].lower()
     else:
-        print("Invalid number of argument, Enter test or the year")
-        print("Example: python " + sys.argv[0].lower() + " test")
-        exit(1)
+        current_year = datetime.now().year
+        spreadsheet_var = current_year
+        print(f"No year arguments entered, using current year {current_year} as default.")
 
-    if spreadsheet_var == "test":
+    google_sheet = {
+        "spreadsheetId": SPREADSHEET_ID,
+        "range": "!A2:M",
+        "sheetName": spreadsheet_var
+    }
 
-        google_sheet = {
-            "spreadsheetId": "1a4_U99Dnk3i1HxMltCJXqkVPRabUnz_RI_85O5GYxL8",
-            "range": "!A2:M",
-            "sheetName": "Test"
-        }
-    elif spreadsheet_var == "2020":
+    # if spreadsheet_var == "test":
 
-        google_sheet = {
-            "spreadsheetId": "1a4_U99Dnk3i1HxMltCJXqkVPRabUnz_RI_85O5GYxL8",
-            "range": "!A2:M",
-            "sheetName": "2020"
-        }
-    elif spreadsheet_var == "2021":
+    #     google_sheet = {
+    #         "spreadsheetId": "1a4_U99Dnk3i1HxMltCJXqkVPRabUnz_RI_85O5GYxL8",
+    #         "range": "!A2:M",
+    #         "sheetName": "Test"
+    #     }
+    # elif spreadsheet_var == "2020":
 
-        google_sheet = {
-            "spreadsheetId": "1a4_U99Dnk3i1HxMltCJXqkVPRabUnz_RI_85O5GYxL8",
-            "range": "!A2:M",
-            "sheetName": "2021"
-        }
-    elif spreadsheet_var == "2022":
+    #     google_sheet = {
+    #         "spreadsheetId": "1a4_U99Dnk3i1HxMltCJXqkVPRabUnz_RI_85O5GYxL8",
+    #         "range": "!A2:M",
+    #         "sheetName": "2020"
+    #     }
+    # elif spreadsheet_var == "2021":
 
-        google_sheet = {
-            "spreadsheetId": "1a4_U99Dnk3i1HxMltCJXqkVPRabUnz_RI_85O5GYxL8",
-            "range": "!A2:M",
-            "sheetName": "2022"
-        }
-    elif spreadsheet_var == "2023":
+    #     google_sheet = {
+    #         "spreadsheetId": "1a4_U99Dnk3i1HxMltCJXqkVPRabUnz_RI_85O5GYxL8",
+    #         "range": "!A2:M",
+    #         "sheetName": "2021"
+    #     }
+    # elif spreadsheet_var == "2022":
 
-        google_sheet = {
-            "spreadsheetId": "1a4_U99Dnk3i1HxMltCJXqkVPRabUnz_RI_85O5GYxL8",
-            "range": "!A2:M",
-            "sheetName": "2023"
-        }
-    elif spreadsheet_var == "2024":
+    #     google_sheet = {
+    #         "spreadsheetId": "1a4_U99Dnk3i1HxMltCJXqkVPRabUnz_RI_85O5GYxL8",
+    #         "range": "!A2:M",
+    #         "sheetName": "2022"
+    #     }
+    # elif spreadsheet_var == "2023":
 
-        google_sheet = {
-            "spreadsheetId": "1a4_U99Dnk3i1HxMltCJXqkVPRabUnz_RI_85O5GYxL8",
-            "range": "!A2:M",
-            "sheetName": "2024"
-        }
-    else:
-        print("No valid arguments entered. Exiting...")
-        exit(1)
+    #     google_sheet = {
+    #         "spreadsheetId": "1a4_U99Dnk3i1HxMltCJXqkVPRabUnz_RI_85O5GYxL8",
+    #         "range": "!A2:M",
+    #         "sheetName": "2023"
+    #     }
+    # elif spreadsheet_var == "2024":
+
+    #     google_sheet = {
+    #         "spreadsheetId": "1a4_U99Dnk3i1HxMltCJXqkVPRabUnz_RI_85O5GYxL8",
+    #         "range": "!A2:M",
+    #         "sheetName": "2024"
+    #     }
+    # else:
+    #     print("No valid arguments entered. Exiting...")
+    #     exit(1)
 
 
-    main_workbook = Google.get(google_sheet["spreadsheetId"], google_sheet["sheetName"], "!A2:M")
+
+    main_workbook = Google.get(
+        google_sheet["spreadsheetId"], 
+        google_sheet["sheetName"], "!A2:M"
+    )
+
+    if not main_workbook:
+        exit()
+    
+
     print("Opened the main score spreadsheet.")
 
     for participant in main_workbook:

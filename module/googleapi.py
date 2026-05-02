@@ -10,6 +10,7 @@ webbrowser.get('chrome').open_new_tab(urL)
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
+import googleapiclient
 
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
@@ -64,7 +65,13 @@ class Google:
 
         # Call the Sheets API
         sheet = service.spreadsheets()
-        result = sheet.values().get(spreadsheetId=spreadsheet_id, range=sheet_name+sheet_range).execute()
+
+        try:
+            result = sheet.values().get(spreadsheetId=spreadsheet_id, range=sheet_name+sheet_range).execute()
+        except googleapiclient.errors.HttpError as error:
+            print(f"An error occurred: {error}")
+            print("Please check if the spreadsheet ID and sheet name are correct and that you have access to the spreadsheet.")
+            return None
  
         return result.get('values', [])
 
