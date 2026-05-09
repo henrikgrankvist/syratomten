@@ -57,7 +57,7 @@ class Google:
         spreadsheet = service.spreadsheets().create(body=spreadsheet,fields='spreadsheetId').execute()
         return spreadsheet.get('spreadsheetId')
 
-    def get(spreadsheet_id=None, sheet_name=None, sheet_range='!A2:I'):
+    def get(spreadsheet_id=None, sheet_name:str=None, sheet_range='!A2:I'):
 
         creds = Google.token()
 
@@ -112,7 +112,13 @@ class Google:
 
         # Call the Sheets API
         sheet = service.spreadsheets()
-        result = sheet.values().update(spreadsheetId=spreadsheet_id, range=sheet_range, valueInputOption='RAW', body=body).execute()
+        
+        result = sheet.values().update(
+            spreadsheetId=spreadsheet_id, 
+            range=sheet_range, 
+            valueInputOption='RAW', 
+            body=body
+        ).execute()
 
         return result
 

@@ -2,14 +2,14 @@
 Participants needs unique names
 """
 
-import datetime
+#import datetime
 import sys
 import json
 import copy
 import time
 from datetime import datetime
 
-import googleapiclient
+#import googleapiclient
 
 from module.googleapi import Google
 
@@ -32,8 +32,8 @@ def new_sort_final_score(elem):
 
 
 def calculate_speed(time): # Time needs to be in HH:MM format
-    min2hrs = int(datetime.datetime.strptime(time, "%M:%S").strftime("%M"))/60
-    sec2hrs = int(datetime.datetime.strptime(time, "%M:%S").strftime("%S"))/3600
+    min2hrs = int(datetime.strptime(time, "%M:%S").strftime("%M"))/60
+    sec2hrs = int(datetime.strptime(time, "%M:%S").strftime("%S"))/3600
     speed = RACE_LENGTH / (min2hrs + sec2hrs)
     return speed
 
@@ -104,9 +104,9 @@ if __name__ == "__main__":
 
     if len(sys.argv) == 2:
         spreadsheet_var = sys.argv[1].lower()
-    else:
+    else: #If specific year is not entered as an argument, use the current year as default.
         current_year = datetime.now().year
-        spreadsheet_var = current_year
+        spreadsheet_var = str(current_year)
         print(f"No year arguments entered, using current year {current_year} as default.")
 
     google_sheet = {
@@ -114,53 +114,6 @@ if __name__ == "__main__":
         "range": "!A2:M",
         "sheetName": spreadsheet_var
     }
-
-    # if spreadsheet_var == "test":
-
-    #     google_sheet = {
-    #         "spreadsheetId": "1a4_U99Dnk3i1HxMltCJXqkVPRabUnz_RI_85O5GYxL8",
-    #         "range": "!A2:M",
-    #         "sheetName": "Test"
-    #     }
-    # elif spreadsheet_var == "2020":
-
-    #     google_sheet = {
-    #         "spreadsheetId": "1a4_U99Dnk3i1HxMltCJXqkVPRabUnz_RI_85O5GYxL8",
-    #         "range": "!A2:M",
-    #         "sheetName": "2020"
-    #     }
-    # elif spreadsheet_var == "2021":
-
-    #     google_sheet = {
-    #         "spreadsheetId": "1a4_U99Dnk3i1HxMltCJXqkVPRabUnz_RI_85O5GYxL8",
-    #         "range": "!A2:M",
-    #         "sheetName": "2021"
-    #     }
-    # elif spreadsheet_var == "2022":
-
-    #     google_sheet = {
-    #         "spreadsheetId": "1a4_U99Dnk3i1HxMltCJXqkVPRabUnz_RI_85O5GYxL8",
-    #         "range": "!A2:M",
-    #         "sheetName": "2022"
-    #     }
-    # elif spreadsheet_var == "2023":
-
-    #     google_sheet = {
-    #         "spreadsheetId": "1a4_U99Dnk3i1HxMltCJXqkVPRabUnz_RI_85O5GYxL8",
-    #         "range": "!A2:M",
-    #         "sheetName": "2023"
-    #     }
-    # elif spreadsheet_var == "2024":
-
-    #     google_sheet = {
-    #         "spreadsheetId": "1a4_U99Dnk3i1HxMltCJXqkVPRabUnz_RI_85O5GYxL8",
-    #         "range": "!A2:M",
-    #         "sheetName": "2024"
-    #     }
-    # else:
-    #     print("No valid arguments entered. Exiting...")
-    #     exit(1)
-
 
 
     main_workbook = Google.get(
@@ -213,7 +166,7 @@ if __name__ == "__main__":
 
 
     for race in total_race_result_list:
-        time.sleep(10)
+        time.sleep(10) # Sleep is added to avoid hitting the Google API limit. The limit is 100 requests per 100 seconds. With the current setup we are making 2 requests
 
         #race_spreadsheet = Google.create_spreadsheet(race["race"], sheet_titles_list)
         #print(f'Created spreadsheet for {race["race"]}')
@@ -324,7 +277,7 @@ if __name__ == "__main__":
                             final_result_dict[race_class][participant[1]][race["race"]] = participant[5]
     
     
-    final_spreadsheet_id = Google.create_spreadsheet("Syratomten Total Poängställning", sheet_titles_list)
+    final_spreadsheet_id = Google.create_spreadsheet(f"Syratomten Total Poängställning {spreadsheet_var}", sheet_titles_list)
     print(f"Created spreadsheet Syratomten Total Poängställning")
     
     # Updating the final score spreadsheet with the headings.
